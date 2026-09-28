@@ -19,10 +19,11 @@ const t = uiText.editor;
 
 interface Props {
   blocks: BlockData[];
+  pageId?: string;
   setBlocks: (fn: (prev: BlockData[]) => BlockData[]) => void;
 }
 
-export function BlocksTab({ blocks, setBlocks }: Props) {
+export function BlocksTab({ blocks, setBlocks, pageId }: Props) {
   const [ordering, setOrdering] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -131,6 +132,7 @@ export function BlocksTab({ blocks, setBlocks }: Props) {
       </section>
 
       <BlockEditSheet
+        pageId={pageId}
         block={editing}
         onClose={() => setEditingId(null)}
         onChange={(content) => editing && update(editing.id!, { content } as Partial<BlockData>)}

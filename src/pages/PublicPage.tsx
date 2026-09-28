@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageRenderer } from "@/components/PageRenderer";
+import { getFeed } from "@/lib/linkinbio/instagram";
 import { fetchPageByAddress } from "@/lib/linkinbio/api";
 import { uiText } from "@/lib/uiText";
 
@@ -13,6 +14,8 @@ export default function PublicPage() {
     queryKey: ["public-page", address],
     queryFn: () => fetchPageByAddress(address),
   });
+
+  const feed = useQuery({ queryKey: ["instagram-feed", data?.page.id], queryFn: () => getFeed(data?.page.id ?? ""), enabled: !!data?.page.id });
 
   useEffect(() => {
     if (data?.page) document.title = `${data.page.display_name} | Link in bio`;
@@ -43,7 +46,7 @@ export default function PublicPage() {
     );
   }
 
-  return <PageRenderer page={data.page} blocks={data.blocks} />;
+  return <PageRenderer page={data.page} blocks={data.blocks} syncedPosts={feed.data} />;
 }
 
 function Centered({ title, body, children }: { title: string; body: string; children: React.ReactNode }) {

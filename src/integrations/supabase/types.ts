@@ -55,6 +55,144 @@ export type Database = {
           },
         ]
       }
+      instagram_connections: {
+        Row: {
+          access_token: string
+          created_at: string
+          instagram_user_id: string
+          last_error: string | null
+          last_synced_at: string | null
+          page_id: string
+          token_expires_at: string
+          token_issued_at: string
+          updated_at: string
+          username: string
+        }
+        Insert: {
+          access_token: string
+          created_at?: string
+          instagram_user_id: string
+          last_error?: string | null
+          last_synced_at?: string | null
+          page_id: string
+          token_expires_at: string
+          token_issued_at?: string
+          updated_at?: string
+          username: string
+        }
+        Update: {
+          access_token?: string
+          created_at?: string
+          instagram_user_id?: string
+          last_error?: string | null
+          last_synced_at?: string | null
+          page_id?: string
+          token_expires_at?: string
+          token_issued_at?: string
+          updated_at?: string
+          username?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "instagram_connections_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: true
+            referencedRelation: "pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      instagram_oauth_states: {
+        Row: {
+          created_at: string
+          expires_at: string
+          page_id: string
+          return_origin: string
+          state_hash: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          page_id: string
+          return_origin: string
+          state_hash: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          page_id?: string
+          return_origin?: string
+          state_hash?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "instagram_oauth_states_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      instagram_posts: {
+        Row: {
+          caption: string
+          created_at: string
+          id: string
+          image_url: string
+          instagram_media_id: string
+          is_hidden: boolean
+          link_url: string
+          media_type: string
+          page_id: string
+          permalink: string
+          position: number
+          posted_at: string
+          updated_at: string
+        }
+        Insert: {
+          caption?: string
+          created_at?: string
+          id?: string
+          image_url: string
+          instagram_media_id: string
+          is_hidden?: boolean
+          link_url?: string
+          media_type: string
+          page_id: string
+          permalink?: string
+          position?: number
+          posted_at: string
+          updated_at?: string
+        }
+        Update: {
+          caption?: string
+          created_at?: string
+          id?: string
+          image_url?: string
+          instagram_media_id?: string
+          is_hidden?: boolean
+          link_url?: string
+          media_type?: string
+          page_id?: string
+          permalink?: string
+          position?: number
+          posted_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "instagram_posts_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       page_templates: {
         Row: {
           blocks: Json

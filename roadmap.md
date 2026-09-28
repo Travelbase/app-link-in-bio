@@ -1,0 +1,6 @@
+- [x] Private Instagram connection and synced-post storage
+- [x] Official Instagram connection, callback, refresh and image sync (live OAuth still awaits IT's app)
+- [ ] Daily automatic sync scheduling: deploy the server-only instagram-daily worker on a Lovable Cloud Job at 05:00 UTC; no active schedule because secure job credentials cannot be provisioned in this environment
+- [x] Connected/manual editor and public clickable feed (connected flow awaits IT's app)
+- [x] Replace stock feed placeholders on the two existing pages
+- [x] Verify manual preview, callback URL, setup-missing state, and desktop/mobile links

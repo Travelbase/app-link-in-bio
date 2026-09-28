@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.run_instagram_daily() FROM anon, authenticated;
