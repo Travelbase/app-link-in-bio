@@ -102,6 +102,32 @@ export type Database = {
           },
         ]
       }
+      instagram_disconnect_notices: {
+        Row: {
+          created_at: string
+          page_id: string
+          reason: string
+        }
+        Insert: {
+          created_at?: string
+          page_id: string
+          reason?: string
+        }
+        Update: {
+          created_at?: string
+          page_id?: string
+          reason?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "instagram_disconnect_notices_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: true
+            referencedRelation: "pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       instagram_oauth_states: {
         Row: {
           created_at: string
@@ -192,6 +218,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      internal_job_secrets: {
+        Row: {
+          created_at: string
+          name: string
+          secret: string
+        }
+        Insert: {
+          created_at?: string
+          name: string
+          secret: string
+        }
+        Update: {
+          created_at?: string
+          name?: string
+          secret?: string
+        }
+        Relationships: []
       }
       page_templates: {
         Row: {
@@ -291,7 +335,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      run_instagram_daily: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
