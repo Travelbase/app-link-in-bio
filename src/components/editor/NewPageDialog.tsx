@@ -60,7 +60,14 @@ export function NewPageDialog({ open, onOpenChange }: { open: boolean; onOpenCha
           <DialogDescription>{t.newPageDialog.description}</DialogDescription>
         </DialogHeader>
         <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); if (canCreate) void create(); }}>
-          <TextField label={t.settings.instagramHandle} hint={t.settings.handleHint} value={handle} onChange={onHandle} placeholder="travelbase_nl" />
+          <div className="space-y-1.5">
+            <Label htmlFor="new-handle">{t.settings.instagramHandle}</Label>
+            <div className="flex items-center rounded-md border focus-within:ring-2 focus-within:ring-ring">
+              <span className="pl-3 text-sm text-muted-foreground" aria-hidden="true">@</span>
+              <Input id="new-handle" value={handle} className="border-0 pl-0.5 focus-visible:ring-0" placeholder="travelbase_nl" autoComplete="off"
+                onChange={(e) => onHandle(e.target.value)} />
+            </div>
+          </div>
           <TextField label={t.settings.displayName} value={name} onChange={setName} />
           <div className="space-y-1.5">
             <Label htmlFor="new-address">{t.settings.webAddress}</Label>
