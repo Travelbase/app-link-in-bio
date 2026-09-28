@@ -3,7 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Info } from "lucide-react";
-import type { BlockContentMap, BlockData, SocialPlatform } from "@/lib/linkinbio/types";
+import type { BlockContentMap, BlockData, GridPost, SocialPlatform } from "@/lib/linkinbio/types";
 import { uiText } from "@/lib/uiText";
 import { ImageUpload } from "./ImageUpload";
 import { ListEditor, SwitchField, TextField, UrlField } from "./fields";
@@ -164,7 +164,7 @@ function BlockFields({ block, onChange }: { block: BlockData; onChange: (c: Bloc
             label={f.posts}
             items={c.posts}
             onChange={(posts) => onChange({ ...c, posts })}
-            makeItem={() => ({ image_url: "" })}
+            makeItem={(): GridPost => ({ image_url: "" })}
             addLabel={f.addPost}
             itemTitle={(n) => f.post(n)}
             renderFields={(post, update) => (
