@@ -38,7 +38,7 @@ export default function Editor() {
   const { address } = useParams();
   const [newOpen, setNewOpen] = useState(false);
   // Returning from an Instagram login started in the "New page" dialog.
-  const [pending] = useState(() => {
+  const [pending, setPending] = useState<{ key: string | null; error: string | null } | null>(() => {
     const q = new URLSearchParams(window.location.search);
     const v = q.get("new_page");
     if (!v) return null;
@@ -57,7 +57,7 @@ export default function Editor() {
     refetchOnWindowFocus: false,
   });
 
-  const dialog = <NewPageDialog open={newOpen} onOpenChange={setNewOpen} pendingKey={pending?.key} connectError={pending?.error} />;
+  const dialog = <NewPageDialog open={newOpen} onOpenChange={(o) => { setNewOpen(o); if (!o) setPending(null); }} pendingKey={pending?.key} connectError={pending?.error} />;
 
   if (pagesQ.isError || pageQ.isError) {
     return (
