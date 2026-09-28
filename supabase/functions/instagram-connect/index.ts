@@ -62,7 +62,23 @@ Deno.serve(async (req) => {
       if (isNew) target.searchParams.set('new_page', 'error'); else target.searchParams.set('instagram', 'error');
       target.searchParams.set('reason', message(e).slice(0, 200));
     }
-    return new Response(null, { status: 302, headers: { ...corsHeaders, Location: target.toString() } });
+    // Report back to the editor pop-up when there is one; otherwise redirect as before.
+    const statusParam = String(target.searchParams.get(isNew ? 'new_page' : 'instagram') ?? 'error');
+    const payload: Record<string, string> = {
+      status: statusParam === 'error' || (!isNew && statusParam !== 'connected') ? 'error' : 'ok',
+      reason: target.searchParams.get('reason') ?? '',
+    };
+    if (payload.status === 'ok' && isNew) payload.key = statusParam;
+    const html = `<!doctype html><meta charset="utf-8"><title>Instagram</title><script>
+(function () {
+  var d = ${JSON.stringify({ type: 'instagram-connect', ...payload })};
+  if (window.opener) {
+    try { window.opener.postMessage(d, ${JSON.stringify(saved.return_origin)}); } catch (e) {}
+    setTimeout(function () { window.close(); }, 250);
+  } else { location.replace(${JSON.stringify(target.toString())}); }
+})();
+</script>`;
+    return new Response(html, { headers: { ...corsHeaders, 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' } });
   }
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
   try {
