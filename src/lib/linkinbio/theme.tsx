@@ -27,10 +27,12 @@ export interface Theme {
   /** Styles for image cards (banner, carousel) — radius capped so images stay readable. */
   card: CSSProperties;
   text: CSSProperties;
+  houseStyle: boolean;
   link: (url: string, blockType: string, label: string) => string;
 }
 
 export function buildTheme(design: PageDesign, address: string): Theme {
+  const houseStyle = design.background_color.toLowerCase() === "#eaf1ee" && design.block_color.toLowerCase() === "#3e6255" && design.font === "montserrat";
   const outline = design.block_style === "outline";
   const base: CSSProperties = {
     background: outline ? "transparent" : design.block_color,
@@ -45,6 +47,7 @@ export function buildTheme(design: PageDesign, address: string): Theme {
     block: { ...base, borderRadius: RADIUS[design.block_shape] },
     card: { ...base, borderRadius: CARD_RADIUS[design.block_shape] },
     text: { color: design.text_color },
+    houseStyle,
     link: (url, blockType, label) => withUtm(url, address, blockType, label),
   };
 }

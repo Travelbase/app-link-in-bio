@@ -15,6 +15,8 @@ export interface PageDesign {
   block_shape: BlockShape;
   block_style: BlockStyleKind;
   block_shadow: BlockShadow;
+  button_accent_color?: string | null;
+  footer_logo_url?: string | null;
 }
 
 export interface PageData extends PageDesign {
