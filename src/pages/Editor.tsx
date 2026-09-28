@@ -177,7 +177,7 @@ function Workspace({ initial, pages, onNewPage }: {
                   <p className="text-sm text-muted-foreground">{t.analytics.comingSoon}</p>
                 </div>
               </TabsContent>
-              <TabsContent value="settings" className="mt-0"><SettingsTab page={ed.page} savedAddress={savedAddress} update={ed.updatePage} /></TabsContent>
+              <TabsContent value="settings" className="mt-0"><SettingsTab page={ed.page} savedAddress={savedAddress} update={ed.updatePage} blocks={ed.blocks} setBlocks={ed.setBlocks} /></TabsContent>
             </div>
           </Tabs>
         </div>

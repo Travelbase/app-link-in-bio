@@ -10,7 +10,9 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import type { Market, PageData } from "@/lib/linkinbio/types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MARKETS } from "@/lib/linkinbio/api";
+import { MARKETS, fetchTemplateBlocks, swapTemplateTexts } from "@/lib/linkinbio/api";
+import type { BlockData } from "@/lib/linkinbio/types";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { deletePage } from "@/lib/linkinbio/api";
 import { utmSourceFor, UTM_MEDIUM } from "@/lib/linkinbio/utm";
 import { useAddressCheck } from "@/hooks/useAddressCheck";
@@ -23,9 +25,21 @@ interface Props {
   page: PageData;
   savedAddress: string;
   update: (patch: Partial<PageData>) => void;
+  blocks: BlockData[];
+  setBlocks: (fn: (prev: BlockData[]) => BlockData[]) => void;
 }
 
-export function SettingsTab({ page, savedAddress, update }: Props) {
+export function SettingsTab({ page, savedAddress, update, blocks, setBlocks }: Props) {
+  const [swapOffer, setSwapOffer] = useState<{ blocks: BlockData[]; changed: number } | null>(null);
+  const changeMarket = async (next: Market) => {
+    const prev = page.market ?? "NL";
+    update({ market: next });
+    try {
+      const [from, to] = await Promise.all([fetchTemplateBlocks(prev), fetchTemplateBlocks(next)]);
+      const result = swapTemplateTexts(blocks, from, to);
+      if (result.changed > 0) setSwapOffer(result);
+    } catch { /* offer is optional; the market itself is already saved */ }
+  };
   const [address, setAddress] = useState(page.address);
   const check = useAddressCheck(address, page.id, address === page.address && address === savedAddress);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -54,13 +68,25 @@ export function SettingsTab({ page, savedAddress, update }: Props) {
 
   return (
     <div className="space-y-6">
+      <AlertDialog open={!!swapOffer} onOpenChange={(o) => !o && setSwapOffer(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t.swapTitle}</AlertDialogTitle>
+            <AlertDialogDescription>{t.swapBody(swapOffer?.changed ?? 0)}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t.swapNo}</AlertDialogCancel>
+            <AlertDialogAction onClick={() => { const b = swapOffer!.blocks; setBlocks(() => b); setSwapOffer(null); toast.success(t.swapped); }}>{t.swapYes}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <section className="rounded-md border bg-card p-4 space-y-4">
         <TextField label={t.displayName} value={page.display_name} onChange={(display_name) => update({ display_name })} />
         <TextField label={t.instagramHandle} hint={t.handleHint} value={page.instagram_handle}
           onChange={(v) => update({ instagram_handle: v.replace(/^@+/, "").trim() })} />
         <div className="space-y-1.5">
           <Label htmlFor="settings-market">{t.market}</Label>
-          <Select value={page.market ?? "NL"} onValueChange={(v) => update({ market: v as Market })}>
+          <Select value={page.market ?? "NL"} onValueChange={(v) => void changeMarket(v as Market)}>
             <SelectTrigger id="settings-market" className="w-32"><SelectValue /></SelectTrigger>
             <SelectContent>{MARKETS.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
           </Select>

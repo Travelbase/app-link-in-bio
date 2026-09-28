@@ -161,6 +161,11 @@ export const uiText = {
       handleHint: "Without the @",
       webAddress: "Web address",
       market: "Market",
+      swapTitle: "Switch the example texts too?",
+      swapBody: (n: number) => `${n} example ${n === 1 ? "text" : "texts"} from the template nobody has edited yet can be replaced with the new language. Texts you changed stay as they are.`,
+      swapYes: "Switch texts",
+      swapNo: "Keep current texts",
+      swapped: "Example texts switched",
       addressChangeWarning: "Your old link will stop working — update your Instagram bio.",
       checking: "Checking…",
       available: "Available",
@@ -198,6 +203,8 @@ export const uiText = {
       connectedAs: (h: string) => `Connected as @${h}`,
       loadingProfile: "Loading your Instagram details…",
       back: "Back",
+      autoCreating: (h: string) => `Creating the page for @${h}…`,
+      createdFrom: (h: string) => `Page created from @${h} — you can change the name, address and language in Settings.`,
     },
 
     analytics: {
