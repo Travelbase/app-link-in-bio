@@ -22,6 +22,7 @@ export interface PageData extends PageDesign {
   address: string;
   instagram_handle: string;
   display_name: string;
+  updated_at?: string;
 }
 
 export type SocialPlatform =
