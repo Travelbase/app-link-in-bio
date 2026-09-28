@@ -6,7 +6,7 @@ export function FeaturedBanner({ content }: { content: BlockContentMap["featured
   const t = useTheme();
   return (
     <div className="w-full overflow-hidden animate-fade-in-up" style={t.card}>
-      <a href={t.link(content.url, "featured_banner", content.title)} target="_blank" rel="noopener noreferrer" className="block group">
+      <a href={t.link(content.url, "featured_banner", content.title)} data-track-label={content.title || content.button_label} target="_blank" rel="noopener noreferrer" className="block group">
         <div className="relative h-24 overflow-hidden">
           {content.image_url && (
             <img src={content.image_url} alt={content.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />

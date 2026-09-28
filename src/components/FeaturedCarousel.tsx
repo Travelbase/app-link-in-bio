@@ -44,6 +44,7 @@ export function FeaturedCarousel({ content }: { content: BlockContentMap["carous
           <a
             key={i}
             href={t.link(card.url, "carousel", card.title)}
+            data-track-label={card.title}
             target="_blank"
             rel="noopener noreferrer"
             className="flex-shrink-0 w-[140px] overflow-hidden transition-all duration-300 hover:-translate-y-1 snap-start"

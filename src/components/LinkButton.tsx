@@ -7,6 +7,7 @@ export function LinkButton({ content }: { content: BlockContentMap["button"] }) 
   return (
     <a
       href={t.link(content.url, "button", content.label)}
+      data-track-label={content.label}
       target="_blank"
       rel="noopener noreferrer"
       className="group w-full flex items-center justify-center gap-2 py-4 px-6 text-center hover:brightness-95 hover:-translate-y-0.5 transition-all duration-300 animate-fade-in-up"

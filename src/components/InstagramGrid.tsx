@@ -14,6 +14,7 @@ export function InstagramGrid({ content, syncedPosts }: { content: BlockContentM
           <a
             key={i}
             href={(() => { const own = ("link_url" in post ? post.link_url : post.url) || content.default_url; return own ? t.link(own, "instagram_grid", "feed") : ("permalink" in post && post.permalink) || undefined; })()}
+            data-track-label={("caption" in post && post.caption ? post.caption.slice(0, 60) : "") || "Instagram post"}
             target={typeof window !== "undefined" && window.matchMedia("(min-width: 768px)").matches ? "_blank" : "_self"}
             rel="noopener noreferrer"
             className="relative aspect-square overflow-hidden group focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
