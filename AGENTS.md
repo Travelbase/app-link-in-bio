@@ -8,3 +8,4 @@
 - Addresses "edit", "admin", "api", "settings" are reserved (DB check + `RESERVED_ADDRESSES`) — so editor routes never clash with pages.
 - Editor uses zinc/teal via `html.editor-theme` CSS variables — internal-tool look without touching public pages.
 - Image uploads go straight to the `page-images` bucket via XHR (for progress), max 5 MB.
+- Optional CTA accent and footer logo belong to page design, not the standard template; branded card treatments are activated by the Travelbase house-style design so other pages retain their look.

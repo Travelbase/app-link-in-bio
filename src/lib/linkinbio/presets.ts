@@ -11,18 +11,27 @@ export const THEME_PRESETS: Record<ThemeKey, DesignPreset> = {
     background_type: "color", background_color: "linear-gradient(180deg, #e3dccf 0%, #f0ece4 100%)",
     text_color: "#364a40", font: "playfair-dmsans", block_color: "#b3ccbf", block_text_color: "#2b3b33",
     block_shape: "rounded", block_style: "solid", block_shadow: "soft",
+    button_accent_color: null, footer_logo_url: null,
+  },
+  travelbaseHouse: {
+    background_type: "color", background_color: "#eaf1ee", text_color: "#3e6255", font: "montserrat",
+    block_color: "#3e6255", block_text_color: "#ffffff", block_shape: "rounded", block_style: "solid", block_shadow: "soft",
+    button_accent_color: "#e2572b", footer_logo_url: "https://pqgcdnytqcrlgzyrouqi.supabase.co/storage/v1/object/public/page-images/travelbase%2FTB_Horizontal_Green.png",
   },
   light: {
     background_type: "color", background_color: "#ffffff", text_color: "#18181b", font: "dmsans",
     block_color: "#f4f4f5", block_text_color: "#18181b", block_shape: "rounded", block_style: "solid", block_shadow: "soft",
+    button_accent_color: null, footer_logo_url: null,
   },
   dark: {
     background_type: "color", background_color: "#18181b", text_color: "#fafafa", font: "montserrat",
     block_color: "#27272a", block_text_color: "#fafafa", block_shape: "rounded", block_style: "solid", block_shadow: "none",
+    button_accent_color: null, footer_logo_url: null,
   },
   surf: {
     background_type: "color", background_color: "#2f6f73", text_color: "#FFFFFF", font: "roboto",
     block_color: "#81BBAF", block_text_color: "#FFFFFF", block_shape: "round_sides", block_style: "solid", block_shadow: "none",
+    button_accent_color: null, footer_logo_url: null,
   },
 };
 
@@ -32,7 +41,7 @@ export function matchingTheme(d: PageDesign): ThemeKey | null {
   for (const key of THEME_KEYS) {
     const p = THEME_PRESETS[key];
     const same = (Object.keys(p) as (keyof DesignPreset)[]).every(
-      (k) => String(p[k]).toLowerCase() === String(d[k]).toLowerCase(),
+      (k) => String(p[k] ?? "").toLowerCase() === String(d[k] ?? "").toLowerCase(),
     );
     if (same) return key;
   }

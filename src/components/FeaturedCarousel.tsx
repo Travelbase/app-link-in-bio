@@ -47,14 +47,14 @@ export function FeaturedCarousel({ content }: { content: BlockContentMap["carous
             target="_blank"
             rel="noopener noreferrer"
             className="flex-shrink-0 w-[140px] overflow-hidden transition-all duration-300 hover:-translate-y-1 snap-start"
-            style={t.card}
+            style={t.houseStyle ? { ...t.card, background: "var(--travelbase-white)", color: t.design.text_color, border: "1px solid var(--travelbase-divider)" } : t.card}
           >
             <div className="aspect-square overflow-hidden">
               {card.image_url && <img src={card.image_url} alt={card.title} className="w-full h-full object-cover transition-transform duration-500 hover:scale-110" />}
             </div>
             <div className="p-3">
               <h3 className="font-medium text-sm line-clamp-2 leading-tight" style={{ fontFamily: t.fonts.body }}>{card.title}</h3>
-              {card.subtitle && <p className="text-xs opacity-75 mt-1 line-clamp-2">{card.subtitle}</p>}
+              {card.subtitle && <p className={`text-xs mt-1 line-clamp-2 ${t.houseStyle ? "travelbase-carousel-subtitle" : "opacity-75"}`}>{card.subtitle}</p>}
             </div>
           </a>
         ))}
