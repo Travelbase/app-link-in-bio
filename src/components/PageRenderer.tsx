@@ -52,7 +52,7 @@ export function PageRenderer({ page, blocks, fullScreen = true, preview = false 
           ))}
           <footer className="text-center pt-6 pb-4">
             {page.footer_logo_url && <img src={page.footer_logo_url} alt="" className="mx-auto mb-6 h-auto w-40 max-w-full object-contain" />}
-            <p className="text-xs opacity-70">© {new Date().getFullYear()} {page.address === "travelbase" ? "Travelbase" : page.display_name}</p>
+            <p className="text-xs opacity-70">© {new Date().getFullYear()} {page.display_name}</p>
           </footer>
         </div>
       </div>
