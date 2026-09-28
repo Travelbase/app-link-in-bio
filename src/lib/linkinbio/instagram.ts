@@ -34,3 +34,16 @@ export async function updateSyncedPost(id: string, patch: { link_url?: string; i
   const { error } = await supabase.from('instagram_posts').update(patch).eq('id', id);
   if (error) throw error;
 }
+
+export interface PendingProfile { username: string; name: string; profile_picture_url: string }
+
+/** Instagram login for a page that doesn't exist yet; returns Instagram's login URL. */
+export async function newPageInstagram(action: 'configured' | 'start_new'): Promise<{ configured?: boolean; url?: string }>;
+export async function newPageInstagram(action: 'pending_profile', key: string): Promise<PendingProfile>;
+export async function newPageInstagram(action: 'claim_pending', key: string, pageId: string): Promise<{ ok: boolean; syncError?: string }>;
+export async function newPageInstagram(action: string, key?: string, pageId?: string) {
+  const { data, error } = await supabase.functions.invoke('instagram-connect', { body: { action, key, pageId, origin: window.location.origin } });
+  if (data?.error) throw new Error(data.error);
+  if (error) throw error;
+  return data;
+}

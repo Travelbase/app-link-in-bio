@@ -1,6 +1,10 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
-import type { BlockData, PageData } from "./types";
+import type { BlockData, Market, PageData } from "./types";
+
+export const MARKETS: Market[] = ["NL", "BE", "FR", "DE", "UK"];
+/** Which language version of the standard template each market starts from. */
+const TEMPLATE_FOR: Record<Market, string> = { NL: "standard", BE: "standard", FR: "standard-fr", DE: "standard-de", UK: "standard-uk" };
 
 export const IMAGE_BUCKET = "page-images";
 export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
@@ -63,20 +67,20 @@ export async function isAddressTaken(address: string, exceptId?: string): Promis
   return (data ?? []).length > 0;
 }
 
-export async function createPageFromTemplate(input: { handle: string; displayName: string; address: string }): Promise<string> {
-  const { data: tpl, error: tErr } = await supabase.from("page_templates").select("design,blocks").eq("key", "standard").single();
+export async function createPageFromTemplate(input: { handle: string; displayName: string; address: string; market: Market }): Promise<{ id: string; address: string }> {
+  const { data: tpl, error: tErr } = await supabase.from("page_templates").select("design,blocks").eq("key", TEMPLATE_FOR[input.market]).single();
   if (tErr) throw tErr;
   const design = tpl.design as Record<string, unknown>;
   const { data: page, error } = await supabase
     .from("pages")
-    .insert({ ...design, address: input.address, instagram_handle: input.handle, display_name: input.displayName })
+    .insert({ ...design, address: input.address, instagram_handle: input.handle, display_name: input.displayName, market: input.market })
     .select("id,address")
     .single();
   if (error) throw error;
   const tplBlocks = (tpl.blocks as unknown as BlockData[]) ?? [];
   const rows = tplBlocks.map((b, i) => {
     let content = structuredClone(b.content) as Record<string, unknown>;
-    if (b.type === "profile") content = { ...content, name: input.displayName };
+    if (b.type === "profile") content = { ...content, name: input.displayName, avatar_url: "", avatar_custom: false };
     if (b.type === "social_icons") {
       const items = (content.items as { platform: string; url: string }[]) ?? [];
       content = { ...content, items: items.map((it) => (it.platform === "instagram" ? { ...it, url: `https://instagram.com/${input.handle}` } : it)) };
@@ -87,7 +91,7 @@ export async function createPageFromTemplate(input: { handle: string; displayNam
     const { error: bErr } = await supabase.from("blocks").insert(rows);
     if (bErr) throw bErr;
   }
-  return page.address;
+  return { id: page.id, address: page.address };
 }
 
 export async function deletePage(id: string) {
