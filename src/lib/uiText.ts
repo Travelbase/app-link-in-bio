@@ -196,7 +196,7 @@ export const uiText = {
       connectTitle: "Connect your Instagram account",
       connectBody: "We'll fill in the photo, name and handle, and show your latest posts on the page.",
       skip: "Skip for now",
-      waiting: "Finish the Instagram login in the new tab. You'll continue there.",
+      waiting: "Finish the Instagram login in the pop-up window.",
       notConfigured: "Instagram connection isn't set up yet. You can skip this step and connect later.",
       connectFailed: "Instagram couldn't connect this account. While the Meta app is in development, only invited tester accounts can connect.",
       detailsTitle: "Check details",
