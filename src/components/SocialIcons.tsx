@@ -37,6 +37,7 @@ export function SocialIcons({ content }: { content: BlockContentMap["social_icon
           <a
             key={i}
             href={t.link(link.url, "social_icons", link.platform)}
+            data-track-label={link.platform}
             target="_blank"
             rel="noopener noreferrer"
             className="opacity-80 hover:opacity-100 transition-all duration-300 hover:scale-110"

@@ -14,6 +14,53 @@ export type Database = {
   }
   public: {
     Tables: {
+      analytics_events: {
+        Row: {
+          block_id: string | null
+          block_type: string | null
+          city: string | null
+          country: string | null
+          created_at: string
+          destination: string | null
+          event_type: string
+          id: string
+          item_label: string | null
+          page_id: string
+        }
+        Insert: {
+          block_id?: string | null
+          block_type?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          destination?: string | null
+          event_type: string
+          id?: string
+          item_label?: string | null
+          page_id: string
+        }
+        Update: {
+          block_id?: string | null
+          block_type?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          destination?: string | null
+          event_type?: string
+          id?: string
+          item_label?: string | null
+          page_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analytics_events_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blocks: {
         Row: {
           content: Json
@@ -377,6 +424,32 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      analytics_daily: {
+        Args: { _from: string; _page: string; _to: string }
+        Returns: {
+          button_clicks: number
+          day: string
+          post_clicks: number
+          views: number
+        }[]
+      }
+      analytics_locations: {
+        Args: { _from: string; _page: string; _to: string }
+        Returns: {
+          city: string
+          country: string
+          views: number
+        }[]
+      }
+      analytics_top_links: {
+        Args: { _from: string; _page: string; _to: string }
+        Returns: {
+          block_type: string
+          clicks: number
+          destination: string
+          item_label: string
+        }[]
+      }
       run_instagram_daily: { Args: never; Returns: undefined }
     }
     Enums: {

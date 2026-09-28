@@ -16,3 +16,4 @@
 - Instagram login before a page exists is parked in server-only `instagram_pending_connections` under a one-time hashed key, claimed after the page is created — so tokens never reach the browser.
 - Incomplete blocks (missing required link/image, see `isBlockComplete`) are hidden publicly and dimmed in the editor preview — nothing half-finished goes live.
 - The daily sync refreshes the Profile avatar from Instagram unless `avatar_custom` is set on the profile block (set when the team uploads a photo).
+- Analytics: public pages send fire-and-forget beacons to `analytics-track` (geo resolved server-side, no IP/UA/cookies stored, bots and editor devices skipped); the server-only `analytics_events` table is read only via `analytics-stats` aggregates — privacy without a cookie banner.

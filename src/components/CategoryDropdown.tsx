@@ -27,6 +27,7 @@ export function CategoryDropdown({ content }: { content: BlockContentMap["button
               <a
                 key={index}
                 href={t.link(item.url, "button_group", item.label)}
+                data-track-label={item.label}
                 target="_blank"
                 rel="noopener noreferrer"
                 tabIndex={isOpen ? 0 : -1}
