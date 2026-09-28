@@ -54,7 +54,7 @@ function BlockFields({ block, onChange, pageId }: { block: BlockData; onChange: 
       const set = (p: Partial<BlockContentMap["profile"]>) => onChange({ ...c, ...p });
       return (
         <>
-          <ImageUpload label={f.avatar} value={c.avatar_url} onChange={(avatar_url) => set({ avatar_url })} />
+          <ImageUpload label={f.avatar} value={c.avatar_url} onChange={(avatar_url) => set({ avatar_url, avatar_custom: true })} />
           <TextField label={f.name} value={c.name} onChange={(name) => set({ name })} error={!c.name?.trim() ? f.required : null} />
           <TextField label={f.tagline} value={c.tagline} onChange={(tagline) => set({ tagline })} />
         </>

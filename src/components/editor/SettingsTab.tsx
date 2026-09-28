@@ -8,7 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import type { PageData } from "@/lib/linkinbio/types";
+import type { Market, PageData } from "@/lib/linkinbio/types";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { MARKETS } from "@/lib/linkinbio/api";
 import { deletePage } from "@/lib/linkinbio/api";
 import { utmSourceFor, UTM_MEDIUM } from "@/lib/linkinbio/utm";
 import { useAddressCheck } from "@/hooks/useAddressCheck";
@@ -56,6 +58,13 @@ export function SettingsTab({ page, savedAddress, update }: Props) {
         <TextField label={t.displayName} value={page.display_name} onChange={(display_name) => update({ display_name })} />
         <TextField label={t.instagramHandle} hint={t.handleHint} value={page.instagram_handle}
           onChange={(v) => update({ instagram_handle: v.replace(/^@+/, "").trim() })} />
+        <div className="space-y-1.5">
+          <Label htmlFor="settings-market">{t.market}</Label>
+          <Select value={page.market ?? "NL"} onValueChange={(v) => update({ market: v as Market })}>
+            <SelectTrigger id="settings-market" className="w-32"><SelectValue /></SelectTrigger>
+            <SelectContent>{MARKETS.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
+          </Select>
+        </div>
         <div className="space-y-1.5">
           <Label htmlFor="settings-address">{t.webAddress}</Label>
           <div className="flex items-center rounded-md border focus-within:ring-2 focus-within:ring-ring">

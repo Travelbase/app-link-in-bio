@@ -9,6 +9,7 @@ import { THEME_KEYS, THEME_PRESETS, matchingTheme } from "@/lib/linkinbio/preset
 import { uiText } from "@/lib/uiText";
 import { ImageUpload } from "./ImageUpload";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 
 const t = uiText.editor.design;
 
@@ -45,6 +46,9 @@ export function DesignTab({ page, update }: Props) {
           <ColorRow label={t.color} value={page.background_color} onChange={(background_color) => update({ background_color })} allowGradient />
         )}
         <ColorRow label={t.textIconColor} value={page.text_color} onChange={(text_color) => update({ text_color })} />
+        <Row label={t.showTravelbaseLogo} htmlFor="tb-footer-logo">
+          <Switch id="tb-footer-logo" checked={!!page.show_travelbase_logo} onCheckedChange={(show_travelbase_logo) => update({ show_travelbase_logo })} />
+        </Row>
         <ImageUpload label={t.footerLogo} value={page.footer_logo_url} onChange={(footer_logo_url) => update({ footer_logo_url })} />
         {page.footer_logo_url && <Button variant="ghost" size="sm" onClick={() => update({ footer_logo_url: null })}>{t.removeLogo}</Button>}
         <Row label={t.font}>
