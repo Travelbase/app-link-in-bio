@@ -8,7 +8,11 @@
 - Addresses "edit", "admin", "api", "settings" are reserved (DB check + `RESERVED_ADDRESSES`) — so editor routes never clash with pages.
 - Editor uses zinc/teal via `html.editor-theme` CSS variables — internal-tool look without touching public pages.
 - Image uploads go straight to the `page-images` bucket via XHR (for progress), max 5 MB.
-- Optional CTA accent and footer logo belong to page design, not the standard template; branded card treatments are activated by the Travelbase house-style design so other pages retain their look.
+- Optional CTA accent belongs to page design; the Travelbase footer logo is a per-page `show_travelbase_logo` toggle (URL constant in presets.ts), with an optional custom `footer_logo_url` overriding it; branded card treatments are activated by the Travelbase house-style design so other pages retain their look.
 - Instagram tokens and one-time OAuth requests stay in server-only tables; public post rows expose only copied media, captions and editable links — never put Meta credentials in browser code.
 - Instagram sync lives in edge functions and stores images in page-images; manual grid content remains separate so disconnect can fall back without rewriting blocks.
 - Scheduled jobs authenticate with a random secret in the server-only `internal_job_secrets` table (pg_cron + pg_net) — service-role key isn't available to the database.
+- Standard template has one row per language (`standard` = NL/BE, `standard-fr`, `standard-de`, `standard-uk`), picked by the page's `market` — texts stay in the database, not code.
+- Instagram login before a page exists is parked in server-only `instagram_pending_connections` under a one-time hashed key, claimed after the page is created — so tokens never reach the browser.
+- Incomplete blocks (missing required link/image, see `isBlockComplete`) are hidden publicly and dimmed in the editor preview — nothing half-finished goes live.
+- The daily sync refreshes the Profile avatar from Instagram unless `avatar_custom` is set on the profile block (set when the team uploads a photo).

@@ -132,7 +132,7 @@ export type Database = {
         Row: {
           created_at: string
           expires_at: string
-          page_id: string
+          page_id: string | null
           return_origin: string
           state_hash: string
           updated_at: string
@@ -140,7 +140,7 @@ export type Database = {
         Insert: {
           created_at?: string
           expires_at: string
-          page_id: string
+          page_id?: string | null
           return_origin: string
           state_hash: string
           updated_at?: string
@@ -148,7 +148,7 @@ export type Database = {
         Update: {
           created_at?: string
           expires_at?: string
-          page_id?: string
+          page_id?: string | null
           return_origin?: string
           state_hash?: string
           updated_at?: string
@@ -162,6 +162,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      instagram_pending_connections: {
+        Row: {
+          access_token: string
+          created_at: string
+          expires_at: string
+          instagram_user_id: string
+          key_hash: string
+          name: string
+          profile_picture_url: string
+          token_expires_at: string
+          username: string
+        }
+        Insert: {
+          access_token: string
+          created_at?: string
+          expires_at: string
+          instagram_user_id: string
+          key_hash: string
+          name?: string
+          profile_picture_url?: string
+          token_expires_at: string
+          username: string
+        }
+        Update: {
+          access_token?: string
+          created_at?: string
+          expires_at?: string
+          instagram_user_id?: string
+          key_hash?: string
+          name?: string
+          profile_picture_url?: string
+          token_expires_at?: string
+          username?: string
+        }
+        Relationships: []
       }
       instagram_posts: {
         Row: {
@@ -285,6 +321,8 @@ export type Database = {
           footer_logo_url: string | null
           id: string
           instagram_handle: string
+          market: string
+          show_travelbase_logo: boolean
           text_color: string
           updated_at: string
         }
@@ -305,6 +343,8 @@ export type Database = {
           footer_logo_url?: string | null
           id?: string
           instagram_handle?: string
+          market?: string
+          show_travelbase_logo?: boolean
           text_color?: string
           updated_at?: string
         }
@@ -325,6 +365,8 @@ export type Database = {
           footer_logo_url?: string | null
           id?: string
           instagram_handle?: string
+          market?: string
+          show_travelbase_logo?: boolean
           text_color?: string
           updated_at?: string
         }

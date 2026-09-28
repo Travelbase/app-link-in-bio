@@ -36,12 +36,41 @@ const suggestedLink = (caption: string) => {
   try { const url = new URL(/^https?:\/\//i.test(match[0]) ? match[0] : `https://${match[0]}`); return url.protocol === 'https:' ? url.toString() : ''; } catch { return ''; }
 };
 
+/** Copies an image from Instagram into page-images at a fixed path; returns its public URL. */
+export async function copyImage(source: string, path: string) {
+  const client = db();
+  const image = await fetch(source);
+  if (!image.ok) throw new Error('Instagram image could not be copied.');
+  const bytes = await image.arrayBuffer();
+  const contentType = image.headers.get('content-type')?.split(';')[0] ?? 'image/jpeg';
+  if (!contentType.startsWith('image/') || bytes.byteLength > 10 * 1024 * 1024) throw new Error('Instagram image is not a supported size or format.');
+  const extension = contentType === 'image/png' ? 'png' : contentType === 'image/webp' ? 'webp' : 'jpg';
+  const full = `${path}.${extension}`;
+  const { error } = await client.storage.from('page-images').upload(full, bytes, { contentType, upsert: true });
+  if (error) throw error;
+  return client.storage.from('page-images').getPublicUrl(full).data.publicUrl;
+}
+
+/** Puts the Instagram profile picture on the page's Profile block, unless the team uploaded its own. */
+export async function syncAvatar(pageId: string, pictureUrl: string) {
+  if (!pictureUrl) return;
+  const client = db();
+  const { data: block } = await client.from('blocks').select('id,content').eq('page_id', pageId).eq('type', 'profile').maybeSingle();
+  if (!block || (block.content as Record<string, unknown>)?.avatar_custom) return;
+  const url = await copyImage(pictureUrl, `instagram/${pageId}/avatar`);
+  await client.from('blocks').update({ content: { ...(block.content as Record<string, unknown>), avatar_url: `${url}?v=${Date.now()}`, avatar_custom: false } }).eq('id', block.id);
+}
+
 export async function syncPage(pageId: string) {
   const client = db();
   const { data: raw, error } = await client.from('instagram_connections').select('*').eq('page_id', pageId).single();
   if (error || !raw) throw new Error('Instagram is not connected.');
   try {
     const connection = await refresh(pageId, raw);
+    try {
+      const me = await graph('me?fields=profile_picture_url', connection.access_token);
+      await syncAvatar(pageId, me.profile_picture_url ?? '');
+    } catch { /* avatar is best effort; the feed sync continues */ }
     const data = await graph('me/media?fields=id,caption,media_type,media_url,thumbnail_url,permalink,timestamp&limit=24', connection.access_token);
     const media = (data.data ?? []).filter((m: Record<string, any>) => ['IMAGE', 'VIDEO', 'CAROUSEL_ALBUM'].includes(m.media_type));
     const { data: previous, error: previousError } = await client.from('instagram_posts').select('instagram_media_id,link_url,is_hidden,image_url').eq('page_id', pageId);
@@ -55,16 +84,7 @@ export async function syncPage(pageId: string) {
       if (!imageUrl) {
         const source = post.media_type === 'VIDEO' ? post.thumbnail_url : (post.media_url || post.thumbnail_url);
         if (!source) continue;
-        const image = await fetch(source);
-        if (!image.ok) throw new Error('Instagram image could not be copied.');
-        const bytes = await image.arrayBuffer();
-        const contentType = image.headers.get('content-type')?.split(';')[0] ?? 'image/jpeg';
-        if (!contentType.startsWith('image/') || bytes.byteLength > 10 * 1024 * 1024) throw new Error('Instagram image is not a supported size or format.');
-        const extension = contentType === 'image/png' ? 'png' : contentType === 'image/webp' ? 'webp' : 'jpg';
-        const path = `instagram/${pageId}/${post.id}.${extension}`;
-        const { error: uploadError } = await client.storage.from('page-images').upload(path, bytes, { contentType, upsert: true });
-        if (uploadError) throw uploadError;
-        imageUrl = client.storage.from('page-images').getPublicUrl(path).data.publicUrl;
+        imageUrl = await copyImage(source, `instagram/${pageId}/${post.id}`);
       }
       rows.push({ page_id: pageId, instagram_media_id: post.id, media_type: post.media_type, caption: post.caption ?? '', permalink: post.permalink ?? '', posted_at: post.timestamp, image_url: imageUrl, position, link_url: prior?.link_url ?? suggestedLink(post.caption ?? ''), is_hidden: prior?.is_hidden ?? false });
     }

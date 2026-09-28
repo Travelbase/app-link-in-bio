@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { ArrowUpDown, Check, MoreHorizontal } from "lucide-react";
+import { AlertTriangle, ArrowUpDown, Check, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -86,8 +86,26 @@ export function BlocksTab({ blocks, setBlocks, pageId }: Props) {
     );
   };
 
+  const incomplete = blocks.filter((b) => !isBlockComplete(b));
+
   return (
     <div className="space-y-8">
+      {incomplete.length > 0 && (
+        <section className="rounded-md border border-amber-300 bg-amber-50 p-3 space-y-2" aria-live="polite">
+          <p className="flex items-start gap-2 text-sm font-medium text-amber-900">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />{t.checklistTitle(incomplete.length)}
+          </p>
+          <ul className="space-y-1 pl-6">
+            {incomplete.map((b) => (
+              <li key={b.id}>
+                <button type="button" onClick={() => setEditingId(b.id!)} className="text-left text-sm text-amber-900 underline underline-offset-2 hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded">
+                  {t.blockTypes[b.type].name}{blockSummary(b) ? ` · ${blockSummary(b)}` : ""}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       <section className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t.myBlocks}</h2>

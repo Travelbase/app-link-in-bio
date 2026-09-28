@@ -1,6 +1,7 @@
 import type { BlockContentMap, SocialPlatform } from "@/lib/linkinbio/types";
-import { Facebook, Linkedin, Mail, Instagram, Youtube, MessageCircle } from "lucide-react";
+import { Facebook, Linkedin, Mail, Instagram, Youtube, MessageCircle, Globe } from "lucide-react";
 import { useTheme } from "@/lib/linkinbio/theme";
+import { isValidUrl } from "@/lib/linkinbio/validation";
 
 const PinterestIcon = () => (
   <svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
@@ -23,13 +24,14 @@ const iconMap: Record<SocialPlatform, React.ComponentType<{ className?: string }
   youtube: Youtube,
   whatsapp: MessageCircle,
   email: Mail,
+  website: Globe,
 };
 
 export function SocialIcons({ content }: { content: BlockContentMap["social_icons"] }) {
   const t = useTheme();
   return (
     <div className="flex flex-wrap items-center justify-center gap-4 py-4 animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
-      {(content.items ?? []).map((link, i) => {
+      {(content.items ?? []).filter((l) => isValidUrl(l.url)).map((link, i) => {
         const Icon = iconMap[link.platform] ?? Mail;
         return (
           <a

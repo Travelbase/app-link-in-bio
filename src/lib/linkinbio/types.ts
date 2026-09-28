@@ -1,3 +1,4 @@
+export type Market = "NL" | "BE" | "FR" | "DE" | "UK";
 export type FontKey = "playfair-dmsans" | "montserrat" | "roboto" | "dmsans";
 export type BlockShape = "round_sides" | "rounded" | "square";
 export type BlockStyleKind = "solid" | "outline";
@@ -17,6 +18,7 @@ export interface PageDesign {
   block_shadow: BlockShadow;
   button_accent_color?: string | null;
   footer_logo_url?: string | null;
+  show_travelbase_logo?: boolean;
 }
 
 export interface PageData extends PageDesign {
@@ -24,11 +26,12 @@ export interface PageData extends PageDesign {
   address: string;
   instagram_handle: string;
   display_name: string;
+  market?: Market;
   updated_at?: string;
 }
 
 export type SocialPlatform =
-  | "instagram" | "tiktok" | "facebook" | "pinterest" | "linkedin" | "youtube" | "email" | "whatsapp";
+  | "instagram" | "tiktok" | "facebook" | "pinterest" | "linkedin" | "youtube" | "email" | "whatsapp" | "website";
 
 export interface LinkItem { label: string; url: string }
 export interface CarouselItem { image_url: string; title: string; subtitle: string; url: string }
@@ -41,7 +44,7 @@ export interface GridPost {
 }
 
 export interface BlockContentMap {
-  profile: { avatar_url: string; name: string; tagline: string };
+  profile: { avatar_url: string; name: string; tagline: string; /** true once the team uploads its own photo: daily sync then leaves it alone */ avatar_custom?: boolean };
   social_icons: { items: { platform: SocialPlatform; url: string }[] };
   button: LinkItem;
   button_group: { label: string; items: LinkItem[] };

@@ -9,6 +9,9 @@ import { FeaturedBanner } from "./FeaturedBanner";
 import { FeaturedCarousel } from "./FeaturedCarousel";
 import type { SyncedPost } from "@/lib/linkinbio/instagram";
 import { InstagramGrid } from "./InstagramGrid";
+import { isBlockComplete } from "@/lib/linkinbio/validation";
+import { TRAVELBASE_FOOTER_LOGO } from "@/lib/linkinbio/presets";
+import { uiText } from "@/lib/uiText";
 
 function renderBlock(block: BlockData, syncedPosts?: SyncedPost[] | null) {
   switch (block.type) {
@@ -37,8 +40,8 @@ interface PageRendererProps {
 export function PageRenderer({ page, blocks, fullScreen = true, preview = false, syncedPosts }: PageRendererProps) {
   const theme = useMemo(() => buildTheme(page, page.address), [page]);
   const visible = useMemo(
-    () => [...blocks].filter((b) => b.is_visible).sort((a, b) => a.position - b.position),
-    [blocks],
+    () => [...blocks].filter((b) => b.is_visible && (preview || isBlockComplete(b))).sort((a, b) => a.position - b.position),
+    [blocks, preview],
   );
 
   return (
@@ -50,10 +53,15 @@ export function PageRenderer({ page, blocks, fullScreen = true, preview = false,
       >
         <div className="w-full max-w-[480px] mx-auto px-4 py-8 space-y-5">
           {visible.map((b, i) => (
-            <div key={b.id ?? i}>{renderBlock(b, syncedPosts)}</div>
+            preview && !isBlockComplete(b) ? (
+              <div key={b.id ?? i} className="relative">
+                <div className="opacity-40 pointer-events-none">{renderBlock(b, syncedPosts)}</div>
+                <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-full bg-background px-3 py-1 text-[11px] font-medium text-foreground shadow">{uiText.editor.incompleteHidden}</span>
+              </div>
+            ) : <div key={b.id ?? i}>{renderBlock(b, syncedPosts)}</div>
           ))}
           <footer className="text-center pt-6 pb-4">
-            {page.footer_logo_url && <img src={page.footer_logo_url} alt="" className="mx-auto mb-6 h-auto w-40 max-w-full object-contain" />}
+            {(page.footer_logo_url || page.show_travelbase_logo) && <img src={page.footer_logo_url || TRAVELBASE_FOOTER_LOGO} alt="" className="mx-auto mb-6 h-auto w-40 max-w-full object-contain" />}
             <p className="text-xs opacity-70">© {new Date().getFullYear()} {page.display_name}</p>
           </footer>
         </div>
