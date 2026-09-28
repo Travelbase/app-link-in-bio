@@ -67,6 +67,45 @@ export async function isAddressTaken(address: string, exceptId?: string): Promis
   return (data ?? []).length > 0;
 }
 
+/** Turns a handle into a free, valid address, adding -2, -3… when taken or reserved. */
+export async function freeAddressFor(handle: string, suggest: (h: string) => string, formatError: (a: string) => string | null): Promise<string> {
+  const base = suggest(handle) || "page";
+  for (let i = 1; i < 100; i++) {
+    const candidate = i === 1 ? base : `${base}-${i}`;
+    if (!formatError(candidate) && !(await isAddressTaken(candidate))) return candidate;
+  }
+  throw new Error("No free web address found.");
+}
+
+export async function fetchTemplateBlocks(market: Market): Promise<BlockData[]> {
+  const { data, error } = await supabase.from("page_templates").select("blocks").eq("key", TEMPLATE_FOR[market]).single();
+  if (error) throw error;
+  return (data.blocks as unknown as BlockData[]) ?? [];
+}
+
+/** Replaces template example texts that still match the old market's template with the new market's texts. */
+export function swapTemplateTexts(blocks: BlockData[], from: BlockData[], to: BlockData[]): { blocks: BlockData[]; changed: number } {
+  let changed = 0;
+  const pick = (list: BlockData[], type: string) => list.find((b) => b.type === type)?.content as Record<string, any> | undefined;
+  const swap = (cur: Record<string, any>, a: Record<string, any> | undefined, b: Record<string, any> | undefined, fields: string[]) => {
+    const next = { ...cur };
+    if (!a || !b) return next;
+    for (const f of fields) if (cur[f] && cur[f] === a[f] && a[f] !== b[f]) { next[f] = b[f]; changed++; }
+    return next;
+  };
+  const out = blocks.map((blk) => {
+    const a = pick(from, blk.type), b = pick(to, blk.type);
+    const c = blk.content as Record<string, any>;
+    let content: Record<string, any> = c;
+    if (blk.type === "profile") content = swap(c, a, b, ["tagline"]);
+    else if (blk.type === "featured_banner") content = swap(c, a, b, ["title", "button_label"]);
+    else if (blk.type === "button") content = swap(c, a, b, ["label"]);
+    else if (blk.type === "carousel") content = { ...c, items: (c.items ?? []).map((it: Record<string, any>, i: number) => swap(it, a?.items?.[i], b?.items?.[i], ["title", "subtitle"])) };
+    return { ...blk, content } as BlockData;
+  });
+  return { blocks: out, changed };
+}
+
 export async function createPageFromTemplate(input: { handle: string; displayName: string; address: string; market: Market }): Promise<{ id: string; address: string }> {
   const { data: tpl, error: tErr } = await supabase.from("page_templates").select("design,blocks").eq("key", TEMPLATE_FOR[input.market]).single();
   if (tErr) throw tErr;

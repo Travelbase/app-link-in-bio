@@ -10,9 +10,9 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { createPageFromTemplate, MARKETS } from "@/lib/linkinbio/api";
+import { createPageFromTemplate, freeAddressFor, MARKETS } from "@/lib/linkinbio/api";
 import { newPageInstagram } from "@/lib/linkinbio/instagram";
-import { suggestAddress } from "@/lib/linkinbio/validation";
+import { addressError, suggestAddress } from "@/lib/linkinbio/validation";
 import type { Market } from "@/lib/linkinbio/types";
 import { useAddressCheck } from "@/hooks/useAddressCheck";
 import { uiText } from "@/lib/uiText";
@@ -54,18 +54,32 @@ export function NewPageDialog({ open, onOpenChange, pendingKey, connectError }: 
     setHandle(""); setName(""); setAddress(""); setAddressTouched(false); setMarket("NL"); setPicture("");
     setWaiting(false); setConnecting(false); setError(connectError ? `${n.connectFailed} (${connectError})` : null);
     setKey(pendingKey ?? null);
-    setStep(pendingKey ? "details" : "connect");
+    setStep("connect");
     newPageInstagram("configured").then((r) => setConfigured(!!r.configured)).catch(() => setConfigured(false));
-    if (pendingKey) {
-      setLoadingProfile(true);
-      newPageInstagram("pending_profile", pendingKey)
-        .then((p) => {
-          setHandle(p.username); setName(p.name || p.username); setAddress(suggestAddress(p.username)); setPicture(p.profile_picture_url);
-        })
-        .catch((e: Error) => { setKey(null); setStep("connect"); setError(e.message); })
-        .finally(() => setLoadingProfile(false));
-    }
+    if (pendingKey) void autoCreate(pendingKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, pendingKey, connectError]);
+
+  /** After a successful Instagram login: create the page straight away from the Instagram profile (market NL). */
+  const autoCreate = async (k: string) => {
+    setLoadingProfile(true);
+    try {
+      const p = await newPageInstagram("pending_profile", k);
+      setHandle(p.username);
+      const addr = await freeAddressFor(p.username, suggestAddress, addressError);
+      const page = await createPageFromTemplate({ handle: p.username, displayName: p.name || p.username, address: addr, market: "NL" });
+      const r = await newPageInstagram("claim_pending", k, page.id);
+      if (r.syncError) toast.error(t.instagram.syncError, { description: r.syncError });
+      await qc.invalidateQueries({ queryKey: ["editor-pages"] });
+      toast.success(n.createdFrom(p.username), { duration: 8000 });
+      onOpenChange(false);
+      navigate(`/edit/${page.address}`, { replace: true });
+    } catch (e) {
+      setKey(null); setStep("connect"); setError((e as Error).message || n.failed);
+    } finally {
+      setLoadingProfile(false);
+    }
+  };
 
   const connect = async () => {
     // Open the tab before the async call so popup blockers allow it.
@@ -113,7 +127,15 @@ export function NewPageDialog({ open, onOpenChange, pendingKey, connectError }: 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
-        {step === "connect" ? (
+        {loadingProfile ? (
+          <>
+            <DialogHeader>
+              <DialogTitle>{n.connectTitle}</DialogTitle>
+              <DialogDescription>{n.autoCreating(handle || "…")}</DialogDescription>
+            </DialogHeader>
+            <p className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" />{n.creating}</p>
+          </>
+        ) : step === "connect" ? (
           <>
             <DialogHeader>
               <DialogTitle>{n.connectTitle}</DialogTitle>
