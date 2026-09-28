@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { createPageFromTemplate, freeAddressFor, MARKETS } from "@/lib/linkinbio/api";
-import { newPageInstagram, waitForInstagramPopup, INSTAGRAM_POPUP_FEATURES } from "@/lib/linkinbio/instagram";
+import { friendlyConnectError, newPageInstagram, waitForInstagramPopup, INSTAGRAM_POPUP_FEATURES } from "@/lib/linkinbio/instagram";
 import { addressError, suggestAddress } from "@/lib/linkinbio/validation";
 import type { Market } from "@/lib/linkinbio/types";
 import { useAddressCheck } from "@/hooks/useAddressCheck";
@@ -52,7 +52,7 @@ export function NewPageDialog({ open, onOpenChange, pendingKey, connectError }: 
   useEffect(() => {
     if (!open) return;
     setHandle(""); setName(""); setAddress(""); setAddressTouched(false); setMarket("NL"); setPicture("");
-    setWaiting(false); setConnecting(false); setError(connectError ? `${n.connectFailed} (${connectError})` : null);
+    setWaiting(false); setConnecting(false); setError(connectError ? connectError : connectError === "" ? n.connectFailed : null);
     setKey(pendingKey ?? null);
     setStep("connect");
     newPageInstagram("configured").then((r) => setConfigured(!!r.configured)).catch(() => setConfigured(false));
@@ -148,7 +148,7 @@ export function NewPageDialog({ open, onOpenChange, pendingKey, connectError }: 
               <DialogDescription>{n.connectBody}</DialogDescription>
             </DialogHeader>
             {configured === false && <Alert><AlertDescription>{n.notConfigured}</AlertDescription></Alert>}
-            {error && <Alert variant="destructive"><AlertDescription>{error}</AlertDescription></Alert>}
+            {error && (() => { const fe = friendlyConnectError(error); return <Alert variant="destructive"><AlertDescription>{fe.message}{fe.detail && <span className="mt-1 block text-xs opacity-80">{fe.detail}</span>}</AlertDescription></Alert>; })()}
             {waiting && <Alert><AlertDescription>{n.waiting}</AlertDescription></Alert>}
             <div className="flex flex-col items-center gap-3 py-2">
               <Button onClick={() => void connect()} disabled={!configured || connecting}>
