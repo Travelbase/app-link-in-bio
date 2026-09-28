@@ -27,10 +27,12 @@ interface PageRendererProps {
   blocks: BlockData[];
   /** Fill the viewport (public page). Set false inside a phone preview frame. */
   fullScreen?: boolean;
+  /** Editor preview: must never be counted as a page view. */
+  preview?: boolean;
 }
 
 /** Pure renderer: takes plain page + blocks data (saved or unsaved) and draws the page. */
-export function PageRenderer({ page, blocks, fullScreen = true }: PageRendererProps) {
+export function PageRenderer({ page, blocks, fullScreen = true, preview = false }: PageRendererProps) {
   const theme = useMemo(() => buildTheme(page, page.address), [page]);
   const visible = useMemo(
     () => [...blocks].filter((b) => b.is_visible).sort((a, b) => a.position - b.position),
@@ -41,7 +43,8 @@ export function PageRenderer({ page, blocks, fullScreen = true }: PageRendererPr
     <ThemeProvider value={theme}>
       <div
         className={fullScreen ? "min-h-screen w-full overflow-x-hidden" : "min-h-full w-full overflow-x-hidden"}
-        style={{ ...pageBackground(page), color: page.text_color, fontFamily: theme.fonts.body }}
+        data-preview={preview ? "true" : undefined}
+        style={{ ...pageBackground(page), ...(fullScreen ? {} : { backgroundAttachment: "scroll" }), color: page.text_color, fontFamily: theme.fonts.body }}
       >
         <div className="w-full max-w-[480px] mx-auto px-4 py-8 space-y-5">
           {visible.map((b, i) => (
