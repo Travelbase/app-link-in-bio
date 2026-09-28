@@ -20,11 +20,14 @@ import type { BlockData, PageData } from "@/lib/linkinbio/types";
 import { useEditorState, type SaveStatus } from "@/hooks/useEditorState";
 import { uiText } from "@/lib/uiText";
 import { cn } from "@/lib/utils";
+import { AnalyticsTab } from "@/components/editor/AnalyticsTab";
+import { markEditorDevice } from "@/lib/linkinbio/tracking";
 
 const t = uiText.editor;
 
 /** Switches the app to the internal-tool look (zinc + teal) while the editor is open. */
 function useEditorTheme() {
+  useEffect(() => { markEditorDevice(); }, []);
   useEffect(() => {
     document.documentElement.classList.add("editor-theme");
     const prev = document.title;
@@ -170,13 +173,7 @@ function Workspace({ initial, pages, onNewPage }: {
             <div className="min-h-0 flex-1 overflow-y-auto p-4">
               <TabsContent value="blocks" className="mt-0"><BlocksTab blocks={ed.blocks} setBlocks={ed.setBlocks} pageId={ed.page.id} /></TabsContent>
               <TabsContent value="design" className="mt-0"><DesignTab page={ed.page} update={ed.updatePage} /></TabsContent>
-              <TabsContent value="analytics" className="mt-0">
-                <div className="rounded-md border border-dashed p-10 text-center">
-                  <BarChart3 className="mx-auto mb-2 h-6 w-6 text-muted-foreground" />
-                  <p className="font-medium">{t.analytics.title}</p>
-                  <p className="text-sm text-muted-foreground">{t.analytics.comingSoon}</p>
-                </div>
-              </TabsContent>
+              <TabsContent value="analytics" className="mt-0"><AnalyticsTab pageId={ed.page.id} publicUrl={publicUrl} /></TabsContent>
               <TabsContent value="settings" className="mt-0"><SettingsTab page={ed.page} savedAddress={savedAddress} update={ed.updatePage} blocks={ed.blocks} setBlocks={ed.setBlocks} /></TabsContent>
             </div>
           </Tabs>
