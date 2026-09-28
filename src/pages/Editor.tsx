@@ -37,6 +37,15 @@ export default function Editor() {
   useEditorTheme();
   const { address } = useParams();
   const [newOpen, setNewOpen] = useState(false);
+  // Returning from an Instagram login started in the "New page" dialog.
+  const [pending] = useState(() => {
+    const q = new URLSearchParams(window.location.search);
+    const v = q.get("new_page");
+    if (!v) return null;
+    window.history.replaceState(window.history.state, "", window.location.pathname);
+    return v === "error" ? { key: null, error: q.get("reason") ?? "" } : { key: v, error: null };
+  });
+  useEffect(() => { if (pending) setNewOpen(true); }, [pending]);
   const pagesQ = useQuery({ queryKey: ["editor-pages"], queryFn: fetchPageSummaries, refetchOnWindowFocus: false });
   const target = address ?? pagesQ.data?.[0]?.address;
   const pageQ = useQuery({
@@ -48,7 +57,7 @@ export default function Editor() {
     refetchOnWindowFocus: false,
   });
 
-  const dialog = <NewPageDialog open={newOpen} onOpenChange={setNewOpen} />;
+  const dialog = <NewPageDialog open={newOpen} onOpenChange={setNewOpen} pendingKey={pending?.key} connectError={pending?.error} />;
 
   if (pagesQ.isError || pageQ.isError) {
     return (

@@ -183,7 +183,7 @@ export const uiText = {
 
     newPageDialog: {
       title: "New page",
-      description: "Starts from the Travelbase standard template. You can change everything afterwards.",
+      description: "Starts from the Travelbase standard template in the market’s language. You can change everything afterwards.",
       create: "Create page",
       creating: "Creating…",
       failed: "Couldn't create the page.",
