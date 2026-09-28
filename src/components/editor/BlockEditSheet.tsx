@@ -197,11 +197,13 @@ function InstagramStatus({ pageId }: { pageId?: string }) {
     if (!pageId || busy) return;
     if (action === 'disconnect' && !window.confirm(t.instagram.confirmDisconnect)) return;
     setBusy(true);
+    // Instagram refuses to load inside the editor preview frame, so open login in a new tab (opened now to avoid popup blockers).
+    const popup = action === 'start' ? window.open('', '_blank') : null;
     try {
       const result = await instagramAction(action, pageId);
-      if (action === 'start' && result.url) { window.location.assign(result.url); return; }
+      if (action === 'start' && result.url) { if (popup) popup.location.href = result.url; else window.location.assign(result.url); return; }
       await Promise.all([status.refetch(), qc.invalidateQueries({ queryKey: ['instagram-feed', pageId] })]);
-    } catch (error) { toast.error(error instanceof Error ? error.message : t.instagram.actionError); }
+    } catch (error) { popup?.close(); toast.error(error instanceof Error ? error.message : t.instagram.actionError); }
     finally { setBusy(false); }
   };
   return <div className="space-y-3 rounded-md border bg-muted/30 p-3 text-sm">
