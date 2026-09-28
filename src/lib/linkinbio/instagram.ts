@@ -27,7 +27,7 @@ export async function instagramAction(action: 'status' | 'start' | 'sync' | 'dis
   const { data, error } = await supabase.functions.invoke('instagram-connect', { body: { action, pageId, origin: window.location.origin } });
   if (error) throw error;
   if (data?.error) throw new Error(data.error);
-  return data as { configured?: boolean; connection?: { username: string; last_synced_at: string | null; last_error: string | null } | null; url?: string };
+  return data as { configured?: boolean; revoked?: boolean; connection?: { username: string; last_synced_at: string | null; last_error: string | null } | null; url?: string };
 }
 
 export async function updateSyncedPost(id: string, patch: { link_url?: string; is_hidden?: boolean }) {
