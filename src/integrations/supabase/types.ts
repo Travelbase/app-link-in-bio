@@ -14,7 +14,134 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      blocks: {
+        Row: {
+          content: Json
+          created_at: string
+          id: string
+          is_visible: boolean
+          page_id: string
+          position: number
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          content?: Json
+          created_at?: string
+          id?: string
+          is_visible?: boolean
+          page_id: string
+          position?: number
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          id?: string
+          is_visible?: boolean
+          page_id?: string
+          position?: number
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blocks_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      page_templates: {
+        Row: {
+          blocks: Json
+          created_at: string
+          design: Json
+          id: string
+          key: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          blocks?: Json
+          created_at?: string
+          design?: Json
+          id?: string
+          key: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          blocks?: Json
+          created_at?: string
+          design?: Json
+          id?: string
+          key?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      pages: {
+        Row: {
+          address: string
+          background_color: string
+          background_image_url: string | null
+          background_type: string
+          block_color: string
+          block_shadow: string
+          block_shape: string
+          block_style: string
+          block_text_color: string
+          created_at: string
+          display_name: string
+          font: string
+          id: string
+          instagram_handle: string
+          text_color: string
+          updated_at: string
+        }
+        Insert: {
+          address: string
+          background_color?: string
+          background_image_url?: string | null
+          background_type?: string
+          block_color?: string
+          block_shadow?: string
+          block_shape?: string
+          block_style?: string
+          block_text_color?: string
+          created_at?: string
+          display_name?: string
+          font?: string
+          id?: string
+          instagram_handle?: string
+          text_color?: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          background_color?: string
+          background_image_url?: string | null
+          background_type?: string
+          block_color?: string
+          block_shadow?: string
+          block_shape?: string
+          block_style?: string
+          block_text_color?: string
+          created_at?: string
+          display_name?: string
+          font?: string
+          id?: string
+          instagram_handle?: string
+          text_color?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
