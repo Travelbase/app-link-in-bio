@@ -31,10 +31,12 @@ export function isValidUrl(url: string | undefined | null): boolean {
 
 const filled = (s?: string | null) => !!s && s.trim().length > 0;
 
+/** A block is incomplete when a required link or image is missing; incomplete blocks are hidden from visitors. */
 export function isBlockComplete(b: BlockData): boolean {
   switch (b.type) {
-    case "profile": return filled(b.content.name);
-    case "social_icons": return b.content.items?.length > 0 && b.content.items.every((i) => isValidUrl(i.url));
+    case "profile": return true;
+    // Empty slots are fine (they're hidden); at least one working link is needed.
+    case "social_icons": return (b.content.items ?? []).some((i) => isValidUrl(i.url));
     case "button": return filled(b.content.label) && isValidUrl(b.content.url);
     case "button_group":
       return filled(b.content.label) && b.content.items?.length > 0 && b.content.items.every((i) => filled(i.label) && isValidUrl(i.url));
@@ -43,8 +45,8 @@ export function isBlockComplete(b: BlockData): boolean {
     case "carousel":
       return b.content.items?.length > 0 && b.content.items.every((i) => filled(i.image_url) && filled(i.title) && isValidUrl(i.url));
     case "instagram_grid":
-      return isValidUrl(b.content.default_url) && b.content.posts?.length > 0 &&
-        b.content.posts.every((p) => filled(p.image_url) && (!p.url || isValidUrl(p.url)));
+      // Default link is optional: posts without a link open on Instagram instead.
+      return (!b.content.default_url || isValidUrl(b.content.default_url)) && (b.content.posts ?? []).every((p) => !p.url || isValidUrl(p.url));
     default: return true;
   }
 }

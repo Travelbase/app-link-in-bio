@@ -43,6 +43,8 @@ export const uiText = {
     delete: "Delete",
     cancel: "Cancel",
     incomplete: "Incomplete",
+    incompleteHidden: "Incomplete — hidden from visitors",
+    checklistTitle: (n: number) => `${n} ${n === 1 ? "block still needs" : "blocks still need"} a link or image — ${n === 1 ? "it's" : "they're"} hidden until then`,
     toggleVisible: "Show on page",
     dragHandle: "Drag to reorder",
     moreActions: "More actions",
@@ -106,7 +108,7 @@ export const uiText = {
     },
     platforms: {
       instagram: "Instagram", tiktok: "TikTok", facebook: "Facebook", pinterest: "Pinterest",
-      linkedin: "LinkedIn", youtube: "YouTube", email: "Email", whatsapp: "WhatsApp",
+      linkedin: "LinkedIn", youtube: "YouTube", email: "Email", whatsapp: "WhatsApp", website: "Website",
     },
 
     upload: {
@@ -140,7 +142,8 @@ export const uiText = {
       blockColor: "Block color",
       blockTextColor: "Text color",
       callToActionColor: "Call-to-action colour",
-      footerLogo: "Footer logo",
+      footerLogo: "Other footer logo (optional)",
+      showTravelbaseLogo: "Show Travelbase logo in footer",
       noAccent: "No call-to-action colour",
       removeLogo: "Remove footer logo",
       shape: "Shape",
@@ -157,6 +160,7 @@ export const uiText = {
       instagramHandle: "Instagram handle",
       handleHint: "Without the @",
       webAddress: "Web address",
+      market: "Market",
       addressChangeWarning: "Your old link will stop working — update your Instagram bio.",
       checking: "Checking…",
       available: "Available",
@@ -184,6 +188,16 @@ export const uiText = {
       creating: "Creating…",
       failed: "Couldn't create the page.",
       created: "Page created",
+      connectTitle: "Connect your Instagram account",
+      connectBody: "We'll fill in the photo, name and handle, and show your latest posts on the page.",
+      skip: "Skip for now",
+      waiting: "Finish the Instagram login in the new tab. You'll continue there.",
+      notConfigured: "Instagram connection isn't set up yet. You can skip this step and connect later.",
+      connectFailed: "Instagram couldn't connect this account. While the Meta app is in development, only invited tester accounts can connect.",
+      detailsTitle: "Check details",
+      connectedAs: (h: string) => `Connected as @${h}`,
+      loadingProfile: "Loading your Instagram details…",
+      back: "Back",
     },
 
     analytics: {
