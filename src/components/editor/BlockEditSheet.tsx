@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label as FieldLabel } from "@/components/ui/label";
-import { instagramAction, updateSyncedPost, waitForInstagramPopup, INSTAGRAM_POPUP_FEATURES, type SyncedPost } from "@/lib/linkinbio/instagram";
+import { friendlyConnectError, instagramAction, updateSyncedPost, waitForInstagramPopup, INSTAGRAM_POPUP_FEATURES, type SyncedPost } from "@/lib/linkinbio/instagram";
 import type { BlockContentMap, BlockData, GridPost, SocialPlatform } from "@/lib/linkinbio/types";
 import { uiText } from "@/lib/uiText";
 import { ImageUpload } from "./ImageUpload";
@@ -187,7 +187,7 @@ function InstagramStatus({ pageId }: { pageId?: string }) {
     const result = url.searchParams.get('instagram');
     if (!result) return;
     if (result === 'connected') toast.success(t.instagram.connectedNotice);
-    else toast.error(url.searchParams.get('reason') || t.instagram.connectionError);
+    else { const fe = friendlyConnectError(url.searchParams.get('reason') || t.instagram.connectionError); toast.error(fe.message, fe.detail ? { description: fe.detail } : undefined); }
     url.searchParams.delete('instagram'); url.searchParams.delete('reason');
     window.history.replaceState(window.history.state, '', url.toString());
     void status.refetch();
@@ -207,7 +207,7 @@ function InstagramStatus({ pageId }: { pageId?: string }) {
         if (r.status === 'ok') {
           toast.success(t.instagram.connectedNotice);
           await Promise.all([status.refetch(), qc.invalidateQueries({ queryKey: ['instagram-feed', pageId] })]);
-        } else if (r.status === 'error') toast.error(r.reason || t.instagram.connectionError);
+        } else if (r.status === 'error') { const fe = friendlyConnectError(r.reason || t.instagram.connectionError); toast.error(fe.message, fe.detail ? { description: fe.detail } : undefined); }
         return;
       }
       await Promise.all([status.refetch(), qc.invalidateQueries({ queryKey: ['instagram-feed', pageId] })]);
