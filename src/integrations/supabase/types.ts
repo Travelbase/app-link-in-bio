@@ -291,15 +291,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      instagram_connection_status: {
-        Args: { p_page_id: string }
-        Returns: {
-          last_error: string
-          last_synced_at: string
-          page_id: string
-          username: string
-        }[]
-      }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never

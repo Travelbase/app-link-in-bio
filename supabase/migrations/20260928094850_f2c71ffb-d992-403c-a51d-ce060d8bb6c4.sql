@@ -1,0 +1,1 @@
+DROP FUNCTION public.instagram_connection_status(uuid);
