@@ -3,9 +3,11 @@ import { db, syncPage } from '../_shared/instagram.ts';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
-  // Only the server's service credential can invoke the scheduled worker.
-  if (req.headers.get('Authorization') !== `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`) return new Response('Forbidden', { status: 403, headers: corsHeaders });
+  // Only the database timer knows this secret (stored in a server-only table).
   const client = db();
+  const given = req.headers.get('x-job-secret') ?? '';
+  const { data: row } = await client.from('internal_job_secrets').select('secret').eq('name', 'instagram_daily').maybeSingle();
+  if (!row?.secret || given.length !== row.secret.length || given !== row.secret) return new Response('Forbidden', { status: 403, headers: corsHeaders });
   const { data, error } = await client.from('instagram_connections').select('page_id');
   if (error) return new Response('Could not load connections', { status: 500, headers: corsHeaders });
   const results = await Promise.allSettled((data ?? []).map((c) => syncPage(c.page_id)));

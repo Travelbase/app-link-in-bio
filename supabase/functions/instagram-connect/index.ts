@@ -36,6 +36,7 @@ Deno.serve(async (req) => {
       const account = await graph('me?fields=user_id,username', long.access_token);
       const { error } = await client.from('instagram_connections').upsert({ page_id: saved.page_id, instagram_user_id: String(account.user_id ?? short.user_id), username: account.username, access_token: long.access_token, token_issued_at: new Date().toISOString(), token_expires_at: new Date(Date.now() + long.expires_in * 1000).toISOString(), last_error: null });
       if (error) throw error;
+      await client.from('instagram_disconnect_notices').delete().eq('page_id', saved.page_id);
       await syncPage(saved.page_id);
       target.searchParams.set('instagram', 'connected');
     } catch (e) { target.searchParams.set('instagram', 'error'); target.searchParams.set('reason', message(e).slice(0, 200)); }
@@ -51,7 +52,8 @@ Deno.serve(async (req) => {
     if (!page) return json({ error: 'Page not found' }, 404);
     if (action === 'status') {
       const { data: connection } = await client.from('instagram_connections').select('username,last_synced_at,last_error').eq('page_id', pageId).maybeSingle();
-      return json({ configured: configured(), connection });
+      const { data: notice } = await client.from('instagram_disconnect_notices').select('reason').eq('page_id', pageId).maybeSingle();
+      return json({ configured: configured(), connection, revoked: !connection && !!notice });
     }
     if (action === 'start') {
       if (!configured()) return json({ error: 'The Instagram app has not been set up yet.' }, 503);
