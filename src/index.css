@@ -6,6 +6,10 @@
 
 @layer base {
   :root {
+    --travelbase-white: #ffffff;
+    --travelbase-divider: #98a7a1;
+    --travelbase-subtitle: #5b746b;
+    --travelbase-cta-hover: #ff8547;
     /* Earthy Travel Palette */
     --background: 35 30% 92%;
     --foreground: 150 15% 25%;
@@ -79,6 +83,11 @@
     --ring: 150 20% 65%;
   }
 }
+
+.travelbase-carousel-subtitle { color: var(--travelbase-subtitle); }
+.travelbase-accent-cta:hover { background-color: var(--travelbase-cta-hover) !important; }
+.travelbase-banner-text { color: var(--travelbase-white); }
+.travelbase-banner-overlay { background: linear-gradient(to right, rgb(0 0 0 / .6), rgb(0 0 0 / .3)); }
 
 @layer base {
   /* Internal editor look: zinc neutrals + teal accent */

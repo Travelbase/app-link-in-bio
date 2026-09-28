@@ -16,7 +16,7 @@ export const THEME_PRESETS: Record<ThemeKey, DesignPreset> = {
   travelbaseHouse: {
     background_type: "color", background_color: "#eaf1ee", text_color: "#3e6255", font: "montserrat",
     block_color: "#3e6255", block_text_color: "#ffffff", block_shape: "rounded", block_style: "solid", block_shadow: "soft",
-    button_accent_color: "#e2572b", footer_logo_url: null,
+    button_accent_color: "#e2572b", footer_logo_url: "https://pqgcdnytqcrlgzyrouqi.supabase.co/storage/v1/object/public/page-images/travelbase%2FTB_Horizontal_Green.svg",
   },
   light: {
     background_type: "color", background_color: "#ffffff", text_color: "#18181b", font: "dmsans",

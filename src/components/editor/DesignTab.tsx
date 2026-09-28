@@ -8,6 +8,7 @@ import { FONTS } from "@/lib/linkinbio/theme";
 import { THEME_KEYS, THEME_PRESETS, matchingTheme } from "@/lib/linkinbio/presets";
 import { uiText } from "@/lib/uiText";
 import { ImageUpload } from "./ImageUpload";
+import { Button } from "@/components/ui/button";
 
 const t = uiText.editor.design;
 
@@ -21,7 +22,7 @@ export function DesignTab({ page, update }: Props) {
   return (
     <div className="space-y-6">
       <Section title={t.themes}>
-        <div className="grid grid-cols-3 gap-3 sm:grid-cols-5">
+        <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
           {THEME_KEYS.map((k) => (
             <ThemeTile key={k} label={t.themeNames[k]} design={{ ...THEME_PRESETS[k], background_image_url: null }} selected={active === k}
               onClick={() => update(THEME_PRESETS[k])} />
@@ -44,6 +45,8 @@ export function DesignTab({ page, update }: Props) {
           <ColorRow label={t.color} value={page.background_color} onChange={(background_color) => update({ background_color })} allowGradient />
         )}
         <ColorRow label={t.textIconColor} value={page.text_color} onChange={(text_color) => update({ text_color })} />
+        <ImageUpload label={t.footerLogo} value={page.footer_logo_url} onChange={(footer_logo_url) => update({ footer_logo_url })} />
+        {page.footer_logo_url && <Button variant="ghost" size="sm" onClick={() => update({ footer_logo_url: null })}>{t.removeLogo}</Button>}
         <Row label={t.font}>
           <Select value={page.font} onValueChange={(v) => update({ font: v as FontKey })}>
             <SelectTrigger className="w-56" style={{ fontFamily: FONTS[page.font].body }}><SelectValue /></SelectTrigger>
@@ -59,6 +62,10 @@ export function DesignTab({ page, update }: Props) {
       <Section title={t.blockDesign}>
         <ColorRow label={t.blockColor} value={page.block_color} onChange={(block_color) => update({ block_color })} />
         <ColorRow label={t.blockTextColor} value={page.block_text_color} onChange={(block_text_color) => update({ block_text_color })} />
+        <div className="space-y-2">
+          <ColorRow label={t.callToActionColor} value={page.button_accent_color ?? ""} onChange={(button_accent_color) => update({ button_accent_color: button_accent_color || null })} />
+          {page.button_accent_color && <Button variant="ghost" size="sm" onClick={() => update({ button_accent_color: null })}>{t.noAccent}</Button>}
+        </div>
         <OptionRow<BlockShape> label={t.shape} value={page.block_shape} onChange={(block_shape) => update({ block_shape })}
           options={(["round_sides", "rounded", "square"] as BlockShape[]).map((v) => ({
             value: v, label: t.shapes[v],
@@ -106,7 +113,7 @@ function ColorRow({ label, value, onChange, allowGradient }: { label: string; va
         <div className="flex h-9 w-56 overflow-hidden rounded-md border">
           <input type="color" aria-label={label} value={isHex ? value : "#ffffff"} onChange={(e) => onChange(e.target.value)}
             className="h-full w-10 cursor-pointer border-r bg-transparent p-0.5" />
-          <Input id={id} value={value} onChange={(e) => onChange(e.target.value)} className="h-full rounded-none border-0 font-mono text-xs focus-visible:ring-0" />
+          <Input id={id} value={value} onChange={(e) => onChange(e.target.value)} placeholder={t.noAccent} className="h-full rounded-none border-0 font-mono text-xs focus-visible:ring-0" />
         </div>
       </Row>
       {allowGradient && !isHex && value.includes("gradient") && <p className="text-right text-xs text-muted-foreground">{t.gradientNote}</p>}
