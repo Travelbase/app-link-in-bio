@@ -11,3 +11,4 @@
 - Optional CTA accent and footer logo belong to page design, not the standard template; branded card treatments are activated by the Travelbase house-style design so other pages retain their look.
 - Instagram tokens and one-time OAuth requests stay in server-only tables; public post rows expose only copied media, captions and editable links — never put Meta credentials in browser code.
 - Instagram sync lives in edge functions and stores images in page-images; manual grid content remains separate so disconnect can fall back without rewriting blocks.
+- Scheduled jobs authenticate with a random secret in the server-only `internal_job_secrets` table (pg_cron + pg_net) — service-role key isn't available to the database.
