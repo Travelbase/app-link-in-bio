@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { createPageFromTemplate, freeAddressFor, MARKETS } from "@/lib/linkinbio/api";
-import { newPageInstagram } from "@/lib/linkinbio/instagram";
+import { newPageInstagram, waitForInstagramPopup, INSTAGRAM_POPUP_FEATURES } from "@/lib/linkinbio/instagram";
 import { addressError, suggestAddress } from "@/lib/linkinbio/validation";
 import type { Market } from "@/lib/linkinbio/types";
 import { useAddressCheck } from "@/hooks/useAddressCheck";
@@ -82,14 +82,20 @@ export function NewPageDialog({ open, onOpenChange, pendingKey, connectError }: 
   };
 
   const connect = async () => {
-    // Open the tab before the async call so popup blockers allow it.
-    const popup = window.open("", "_blank");
+    // Open the pop-up before the async call so popup blockers allow it.
+    const popup = window.open("", "instagram-connect", INSTAGRAM_POPUP_FEATURES);
     setConnecting(true); setError(null);
     try {
       const { url } = await newPageInstagram("start_new");
       if (!url) throw new Error(n.connectFailed);
-      if (popup) { popup.location.href = url; setWaiting(true); } else window.location.href = url;
+      if (!popup) { window.location.href = url; return; }
+      setWaiting(true);
+      const r = await waitForInstagramPopup(popup, url);
+      setWaiting(false);
+      if (r.status === "ok" && r.key) void autoCreate(r.key);
+      else if (r.status === "error") setError(r.reason || n.connectFailed);
     } catch (e) {
+      setWaiting(false);
       popup?.close();
       setError((e as Error).message || n.connectFailed);
     } finally {

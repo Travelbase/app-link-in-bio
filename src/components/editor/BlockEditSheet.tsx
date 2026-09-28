@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label as FieldLabel } from "@/components/ui/label";
-import { instagramAction, updateSyncedPost, type SyncedPost } from "@/lib/linkinbio/instagram";
+import { instagramAction, updateSyncedPost, waitForInstagramPopup, INSTAGRAM_POPUP_FEATURES, type SyncedPost } from "@/lib/linkinbio/instagram";
 import type { BlockContentMap, BlockData, GridPost, SocialPlatform } from "@/lib/linkinbio/types";
 import { uiText } from "@/lib/uiText";
 import { ImageUpload } from "./ImageUpload";
@@ -197,11 +197,19 @@ function InstagramStatus({ pageId }: { pageId?: string }) {
     if (!pageId || busy) return;
     if (action === 'disconnect' && !window.confirm(t.instagram.confirmDisconnect)) return;
     setBusy(true);
-    // Instagram refuses to load inside the editor preview frame, so open login in a new tab (opened now to avoid popup blockers).
-    const popup = action === 'start' ? window.open('', '_blank') : null;
+    // Instagram refuses to load inside the editor preview frame, so run the login in a pop-up window (opened now to avoid popup blockers).
+    const popup = action === 'start' ? window.open('', 'instagram-connect', INSTAGRAM_POPUP_FEATURES) : null;
     try {
       const result = await instagramAction(action, pageId);
-      if (action === 'start' && result.url) { if (popup) popup.location.href = result.url; else window.location.assign(result.url); return; }
+      if (action === 'start' && result.url) {
+        if (!popup) { window.location.assign(result.url); return; }
+        const r = await waitForInstagramPopup(popup, result.url);
+        if (r.status === 'ok') {
+          toast.success(t.instagram.connectedNotice);
+          await Promise.all([status.refetch(), qc.invalidateQueries({ queryKey: ['instagram-feed', pageId] })]);
+        } else if (r.status === 'error') toast.error(r.reason || t.instagram.connectionError);
+        return;
+      }
       await Promise.all([status.refetch(), qc.invalidateQueries({ queryKey: ['instagram-feed', pageId] })]);
     } catch (error) { popup?.close(); toast.error(error instanceof Error ? error.message : t.instagram.actionError); }
     finally { setBusy(false); }
