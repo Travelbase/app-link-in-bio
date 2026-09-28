@@ -288,38 +288,18 @@ export type Database = {
       }
     }
     Views: {
-      instagram_connection_status: {
-        Row: {
-          last_error: string | null
-          last_synced_at: string | null
-          page_id: string | null
-          username: string | null
-        }
-        Insert: {
-          last_error?: string | null
-          last_synced_at?: string | null
-          page_id?: string | null
-          username?: string | null
-        }
-        Update: {
-          last_error?: string | null
-          last_synced_at?: string | null
-          page_id?: string | null
-          username?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "instagram_connections_page_id_fkey"
-            columns: ["page_id"]
-            isOneToOne: true
-            referencedRelation: "pages"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+      [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      instagram_connection_status: {
+        Args: { p_page_id: string }
+        Returns: {
+          last_error: string
+          last_synced_at: string
+          page_id: string
+          username: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
