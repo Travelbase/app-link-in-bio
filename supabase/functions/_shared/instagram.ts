@@ -6,7 +6,9 @@ export const configured = () => Boolean(Deno.env.get('INSTAGRAM_APP_ID') && Deno
 export const allowedOrigin = (origin: string) => {
   try {
     const url = new URL(origin);
-    return url.origin === 'http://localhost:8080' || (url.protocol === 'https:' && (url.hostname === 'id-preview--1ac32895-ee15-4dba-bafb-925b49045861.lovable.app' || url.hostname === '1ac32895-ee15-4dba-bafb-925b49045861.lovable.app'));
+    if (url.origin === 'http://localhost:8080') return true;
+    const id = '1ac32895-ee15-4dba-bafb-925b49045861';
+    return url.protocol === 'https:' && url.hostname.includes(id) && (url.hostname.endsWith('.lovable.app') || url.hostname.endsWith('.lovableproject.com'));
   } catch { return false; }
 };
 
