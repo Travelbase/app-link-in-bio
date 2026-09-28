@@ -9,3 +9,5 @@
 - Editor uses zinc/teal via `html.editor-theme` CSS variables — internal-tool look without touching public pages.
 - Image uploads go straight to the `page-images` bucket via XHR (for progress), max 5 MB.
 - Optional CTA accent and footer logo belong to page design, not the standard template; branded card treatments are activated by the Travelbase house-style design so other pages retain their look.
+- Instagram tokens and one-time OAuth requests stay in server-only tables; public post rows expose only copied media, captions and editable links — never put Meta credentials in browser code.
+- Instagram sync lives in edge functions and stores images in page-images; manual grid content remains separate so disconnect can fall back without rewriting blocks.

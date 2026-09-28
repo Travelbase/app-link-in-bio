@@ -167,7 +167,6 @@ function BlockFields({ block, onChange, pageId }: { block: BlockData; onChange: 
           <InstagramStatus pageId={pageId} />
           <UrlField label={f.defaultLink} value={c.default_url} onChange={(default_url) => onChange({ ...c, default_url })} />
           <ManualPosts pageId={pageId} content={c} onChange={onChange} />
-
         </>
       );
     }
