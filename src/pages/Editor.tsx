@@ -159,7 +159,7 @@ function Workspace({ initial, pages, onNewPage }: {
               ))}
             </TabsList>
             <div className="min-h-0 flex-1 overflow-y-auto p-4">
-              <TabsContent value="blocks" className="mt-0"><BlocksTab blocks={ed.blocks} setBlocks={ed.setBlocks} /></TabsContent>
+              <TabsContent value="blocks" className="mt-0"><BlocksTab blocks={ed.blocks} setBlocks={ed.setBlocks} pageId={ed.page.id} /></TabsContent>
               <TabsContent value="design" className="mt-0"><DesignTab page={ed.page} update={ed.updatePage} /></TabsContent>
               <TabsContent value="analytics" className="mt-0">
                 <div className="rounded-md border border-dashed p-10 text-center">
