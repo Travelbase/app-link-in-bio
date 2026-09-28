@@ -12,7 +12,7 @@ export function withUtm(url: string, address: string, blockType: string, label: 
     const u = new URL(url);
     u.searchParams.set("utm_source", utmSourceFor(address));
     u.searchParams.set("utm_medium", UTM_MEDIUM);
-    u.searchParams.set("utm_campaign", `${blockType}_${clean(label)}`);
+    u.searchParams.set("utm_campaign", blockType === "instagram_grid" ? "feed" : `${blockType}_${clean(label)}`);
     return u.toString();
   } catch {
     return url;
