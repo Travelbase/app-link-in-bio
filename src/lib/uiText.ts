@@ -1,6 +1,9 @@
 // Fixed UI text. This project has no translation system yet, so every fixed string lives here
 // and can move to the translations tables later in one go.
 export const uiText = {
+  dataDeletionTitle: "Your Instagram data has been deleted",
+  dataDeletionBody: "We removed the Instagram connection and all posts we had copied from your account.",
+  dataDeletionCode: "Confirmation code:",
   notFoundTitle: "This page doesn't exist",
   notFoundBody: "The link you followed may be broken, or the page has been removed.",
   notFoundCta: "Go to travelbase.eu",
@@ -95,7 +98,7 @@ export const uiText = {
     instagram: {
       setupMissing: "Instagram connection isn’t set up yet. IT needs to add the Meta app.",
       connect: "Connect Instagram", connected: (name: string, when: string) => `Connected as @${name} · last synced ${when}`,
-      neverSynced: "not yet", sync: "Sync now", disconnect: "Disconnect", reconnect: "Reconnect",
+      neverSynced: "not yet", sync: "Sync now", disconnect: "Disconnect", reconnect: "Reconnect", revoked: "Disconnected on Instagram's side — reconnect.",
       confirmDisconnect: "Disconnect Instagram? Synced posts will stay saved but stop updating.",
       statusError: "Couldn’t load Instagram status. Try again.", actionError: "Instagram couldn’t complete that request. Try again.",
       syncError: "Last sync failed:", defaultPlaceholder: "Uses the default link",
