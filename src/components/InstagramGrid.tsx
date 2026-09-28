@@ -1,43 +1,28 @@
-import { GridPost } from "@/data/linkData";
+import type { BlockContentMap } from "@/lib/linkinbio/types";
+import { useTheme } from "@/lib/linkinbio/theme";
 import { Layers, Play } from "lucide-react";
 
-interface InstagramGridProps {
-  posts: GridPost[];
-}
-
-export function InstagramGrid({ posts }: InstagramGridProps) {
+export function InstagramGrid({ content }: { content: BlockContentMap["instagram_grid"] }) {
+  const t = useTheme();
+  const posts = (content.posts ?? []).filter((p) => !p.is_hidden);
   return (
-    <div className="w-full animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
+    <div className="w-full animate-fade-in-up">
       <div className="grid grid-cols-3 gap-1">
-        {posts.map((post, index) => (
+        {posts.map((post, i) => (
           <a
-            key={post.id}
-            href={post.url}
+            key={i}
+            href={t.link(post.url || content.default_url, "instagram_grid", "feed")}
             target="_blank"
             rel="noopener noreferrer"
             className="relative aspect-square overflow-hidden group"
-            style={{ animationDelay: `${0.35 + index * 0.03}s` }}
           >
-            <img
-              src={post.imageUrl}
-              alt=""
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-            />
-            
-            {/* Overlay on hover */}
-            <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/20 transition-colors duration-300" />
-            
-            {/* Indicators */}
-            {post.hasMultiple && (
-              <div className="absolute top-2 right-2 text-primary-foreground drop-shadow-lg">
-                <Layers className="h-4 w-4" />
-              </div>
-            )}
-            {post.isVideo && (
-              <div className="absolute top-2 right-2 text-primary-foreground drop-shadow-lg">
-                <Play className="h-4 w-4 fill-current" />
-              </div>
-            )}
+            <img src={post.image_url} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
+            {post.is_video ? (
+              <Play className="absolute top-2 right-2 h-4 w-4 fill-current text-white drop-shadow-lg" />
+            ) : post.has_multiple ? (
+              <Layers className="absolute top-2 right-2 h-4 w-4 text-white drop-shadow-lg" />
+            ) : null}
           </a>
         ))}
       </div>
