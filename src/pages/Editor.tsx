@@ -118,7 +118,7 @@ function Workspace({ initial, pages, onNewPage }: {
       </header>
 
       <div className="flex flex-wrap items-center gap-2 border-b px-3 py-2 sm:px-4">
-        <div className="flex min-w-0 flex-1 items-center overflow-hidden rounded-md border text-sm">
+        <div className="flex min-w-0 flex-1 basis-full sm:basis-auto items-center overflow-hidden rounded-md border text-sm">
           <span className="shrink-0 px-2.5 font-medium">{t.yourLink}</span>
           <a href={publicUrl} target="_blank" rel="noopener noreferrer" className="min-w-0 truncate text-primary underline-offset-2 hover:underline">{publicUrl}</a>
           <Button variant="ghost" size="sm" className="ml-auto shrink-0 rounded-none border-l" onClick={copy}><Copy className="h-3.5 w-3.5" />{t.copy}</Button>
@@ -131,7 +131,7 @@ function Workspace({ initial, pages, onNewPage }: {
         </Button>
       </div>
 
-      <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,600px)]">
+      <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)] lg:grid-cols-[minmax(0,1fr)_minmax(0,600px)]">
         <div className={cn("min-h-0 overflow-y-auto bg-muted/50 lg:block", mobileView === "preview" ? "block" : "hidden")}>
           <div className="flex flex-col items-center gap-3 px-4 py-6">
             <PhoneFrame>
