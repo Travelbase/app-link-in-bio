@@ -63,8 +63,8 @@ export function NewPageDialog({ open, onOpenChange }: { open: boolean; onOpenCha
           <div className="space-y-1.5">
             <Label htmlFor="new-handle">{t.settings.instagramHandle}</Label>
             <div className="flex items-center rounded-md border focus-within:ring-2 focus-within:ring-ring">
-              <span className="pl-3 text-sm text-muted-foreground" aria-hidden="true">@</span>
-              <Input id="new-handle" value={handle} className="border-0 pl-0.5 focus-visible:ring-0" placeholder="travelbase_nl" autoComplete="off"
+              <span className="pl-3 pr-1.5 text-sm text-muted-foreground" aria-hidden="true">@</span>
+              <Input id="new-handle" value={handle} className="border-0 pl-0 focus-visible:ring-0" placeholder="travelbase_nl" autoComplete="off"
                 onChange={(e) => onHandle(e.target.value)} />
             </div>
           </div>
@@ -72,8 +72,8 @@ export function NewPageDialog({ open, onOpenChange }: { open: boolean; onOpenCha
           <div className="space-y-1.5">
             <Label htmlFor="new-address">{t.settings.webAddress}</Label>
             <div className="flex items-center rounded-md border focus-within:ring-2 focus-within:ring-ring">
-              <span className="pl-3 text-sm text-muted-foreground">{window.location.host}/</span>
-              <Input id="new-address" value={address} className="border-0 pl-0.5 focus-visible:ring-0"
+              <span className="pl-3 pr-1.5 text-sm text-muted-foreground">{window.location.host}/</span>
+              <Input id="new-address" value={address} className="border-0 pl-0 focus-visible:ring-0"
                 onChange={(e) => { setAddressTouched(true); setAddress(e.target.value.toLowerCase().trim()); }} />
               <span className="pr-3">
                 {check.state === "checking" && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
