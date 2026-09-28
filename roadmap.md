@@ -1,0 +1,6 @@
+- [x] Private Instagram connection and synced-post storage
+- [ ] Official Instagram connection, callback, refresh and image sync
+- [ ] Daily automatic sync scheduling
+- [ ] Connected/manual editor and public clickable feed
+- [ ] Replace stock feed placeholders on the two existing pages
+- [ ] Verify preview and connection setup instructions
