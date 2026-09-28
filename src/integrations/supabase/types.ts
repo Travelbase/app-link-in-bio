@@ -96,9 +96,11 @@ export type Database = {
           block_shape: string
           block_style: string
           block_text_color: string
+          button_accent_color: string | null
           created_at: string
           display_name: string
           font: string
+          footer_logo_url: string | null
           id: string
           instagram_handle: string
           text_color: string
@@ -114,9 +116,11 @@ export type Database = {
           block_shape?: string
           block_style?: string
           block_text_color?: string
+          button_accent_color?: string | null
           created_at?: string
           display_name?: string
           font?: string
+          footer_logo_url?: string | null
           id?: string
           instagram_handle?: string
           text_color?: string
@@ -132,9 +136,11 @@ export type Database = {
           block_shape?: string
           block_style?: string
           block_text_color?: string
+          button_accent_color?: string | null
           created_at?: string
           display_name?: string
           font?: string
+          footer_logo_url?: string | null
           id?: string
           instagram_handle?: string
           text_color?: string

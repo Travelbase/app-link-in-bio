@@ -1,0 +1,1 @@
+ALTER TABLE public.pages ADD COLUMN button_accent_color text, ADD COLUMN footer_logo_url text;
