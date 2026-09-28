@@ -1,0 +1,2 @@
+ALTER TABLE public.pages DROP CONSTRAINT IF EXISTS pages_address_not_reserved;
+ALTER TABLE public.pages ADD CONSTRAINT pages_address_not_reserved CHECK (address NOT IN ('edit','admin','api','settings','data-deletion','instagram-callback'));
