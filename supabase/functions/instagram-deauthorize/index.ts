@@ -14,5 +14,6 @@ Deno.serve(async (req) => {
     await client.from('instagram_disconnect_notices').upsert({ page_id: row.page_id, reason: 'deauthorized', created_at: new Date().toISOString() });
   }
   await client.from('instagram_connections').delete().eq('instagram_user_id', String(data.user_id));
+  await client.from('instagram_pending_connections').delete().eq('instagram_user_id', String(data.user_id));
   return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 });

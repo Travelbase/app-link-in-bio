@@ -21,6 +21,7 @@ Deno.serve(async (req) => {
     await client.from('instagram_disconnect_notices').upsert(pageIds.map((page_id) => ({ page_id, reason: 'deleted', created_at: new Date().toISOString() })));
   }
   await client.from('instagram_connections').delete().eq('instagram_user_id', String(data.user_id));
+  await client.from('instagram_pending_connections').delete().eq('instagram_user_id', String(data.user_id));
   const code = crypto.randomUUID().replace(/-/g, '').slice(0, 16);
   return new Response(JSON.stringify({ url: `${STATUS_BASE}?code=${code}`, confirmation_code: code }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 });
