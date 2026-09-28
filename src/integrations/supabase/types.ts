@@ -291,7 +291,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      run_instagram_daily: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
