@@ -7,9 +7,10 @@ import { LinkButton } from "./LinkButton";
 import { CategoryDropdown } from "./CategoryDropdown";
 import { FeaturedBanner } from "./FeaturedBanner";
 import { FeaturedCarousel } from "./FeaturedCarousel";
+import type { SyncedPost } from "@/lib/linkinbio/instagram";
 import { InstagramGrid } from "./InstagramGrid";
 
-function renderBlock(block: BlockData) {
+function renderBlock(block: BlockData, syncedPosts?: SyncedPost[] | null) {
   switch (block.type) {
     case "profile": return <ProfileHeader content={block.content} />;
     case "social_icons": return <SocialIcons content={block.content} />;
@@ -17,7 +18,7 @@ function renderBlock(block: BlockData) {
     case "button_group": return <CategoryDropdown content={block.content} />;
     case "featured_banner": return <FeaturedBanner content={block.content} />;
     case "carousel": return <FeaturedCarousel content={block.content} />;
-    case "instagram_grid": return <InstagramGrid content={block.content} />;
+    case "instagram_grid": return <InstagramGrid content={block.content} syncedPosts={syncedPosts} />;
     default: return null;
   }
 }
@@ -29,10 +30,11 @@ interface PageRendererProps {
   fullScreen?: boolean;
   /** Editor preview: must never be counted as a page view. */
   preview?: boolean;
+  syncedPosts?: SyncedPost[] | null;
 }
 
 /** Pure renderer: takes plain page + blocks data (saved or unsaved) and draws the page. */
-export function PageRenderer({ page, blocks, fullScreen = true, preview = false }: PageRendererProps) {
+export function PageRenderer({ page, blocks, fullScreen = true, preview = false, syncedPosts }: PageRendererProps) {
   const theme = useMemo(() => buildTheme(page, page.address), [page]);
   const visible = useMemo(
     () => [...blocks].filter((b) => b.is_visible).sort((a, b) => a.position - b.position),
@@ -48,7 +50,7 @@ export function PageRenderer({ page, blocks, fullScreen = true, preview = false 
       >
         <div className="w-full max-w-[480px] mx-auto px-4 py-8 space-y-5">
           {visible.map((b, i) => (
-            <div key={b.id ?? i}>{renderBlock(b)}</div>
+            <div key={b.id ?? i}>{renderBlock(b, syncedPosts)}</div>
           ))}
           <footer className="text-center pt-6 pb-4">
             {page.footer_logo_url && <img src={page.footer_logo_url} alt="" className="mx-auto mb-6 h-auto w-40 max-w-full object-contain" />}

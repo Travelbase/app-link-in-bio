@@ -14,6 +14,7 @@ import { BlocksTab } from "@/components/editor/BlocksTab";
 import { DesignTab } from "@/components/editor/DesignTab";
 import { SettingsTab } from "@/components/editor/SettingsTab";
 import { NewPageDialog } from "@/components/editor/NewPageDialog";
+import { getFeed } from "@/lib/linkinbio/instagram";
 import { fetchPageByAddress, fetchPageSummaries, type PageSummary } from "@/lib/linkinbio/api";
 import type { BlockData, PageData } from "@/lib/linkinbio/types";
 import { useEditorState, type SaveStatus } from "@/hooks/useEditorState";
@@ -102,6 +103,7 @@ function Workspace({ initial, pages, onNewPage }: {
   }, [qc]);
 
   const ed = useEditorState(initial, { onSaved });
+  const feed = useQuery({ queryKey: ["instagram-feed", initial.page.id], queryFn: () => getFeed(initial.page.id ?? "") });
   const profile = ed.blocks.find((b) => b.type === "profile");
   const avatar = profile?.type === "profile" ? profile.content.avatar_url : null;
   const publicUrl = `${window.location.origin}/${savedAddress}`;
@@ -135,7 +137,7 @@ function Workspace({ initial, pages, onNewPage }: {
         <div className={cn("min-h-0 overflow-y-auto bg-muted/50 lg:block", mobileView === "preview" ? "block" : "hidden")}>
           <div className="flex flex-col items-center gap-3 px-4 py-6">
             <PhoneFrame>
-              <PageRenderer page={ed.page} blocks={ed.blocks} fullScreen={false} preview />
+              <PageRenderer page={ed.page} blocks={ed.blocks} fullScreen={false} preview syncedPosts={feed.data} />
             </PhoneFrame>
             <LastUpdated at={ed.lastSaved} />
           </div>
