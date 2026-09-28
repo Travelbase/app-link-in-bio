@@ -1,4 +1,11 @@
 import { supabase } from '@/integrations/supabase/client';
+import { uiText } from '@/lib/uiText';
+
+/** Turns Instagram's technical refusal into plain language; keeps the original as detail. */
+export function friendlyConnectError(reason: string): { message: string; detail?: string } {
+  if (/verification code|client secret|client_secret/i.test(reason)) return { message: uiText.instagramRefused, detail: reason };
+  return { message: reason };
+}
 
 export interface SyncedPost {
   id: string;

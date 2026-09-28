@@ -1,6 +1,8 @@
 // Fixed UI text. This project has no translation system yet, so every fixed string lives here
 // and can move to the translations tables later in one go.
 export const uiText = {
+  instagramCallbackBusy: "Finishing the Instagram login…",
+  instagramRefused: "Instagram refused the connection. Check that the Instagram app secret in project Secrets matches the Meta app (Instagram → API setup with Instagram login), then try again.",
   dataDeletionTitle: "Your Instagram data has been deleted",
   dataDeletionBody: "We removed the Instagram connection and all posts we had copied from your account.",
   dataDeletionCode: "Confirmation code:",
