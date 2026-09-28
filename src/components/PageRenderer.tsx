@@ -12,6 +12,7 @@ import { InstagramGrid } from "./InstagramGrid";
 import { isBlockComplete } from "@/lib/linkinbio/validation";
 import { TRAVELBASE_FOOTER_LOGO } from "@/lib/linkinbio/presets";
 import { uiText } from "@/lib/uiText";
+import { handleTrackedClick } from "@/lib/linkinbio/tracking";
 
 function renderBlock(block: BlockData, syncedPosts?: SyncedPost[] | null) {
   switch (block.type) {
@@ -49,16 +50,17 @@ export function PageRenderer({ page, blocks, fullScreen = true, preview = false,
       <div
         className={fullScreen ? "min-h-screen w-full overflow-x-hidden" : "min-h-full w-full overflow-x-hidden"}
         data-preview={preview ? "true" : undefined}
+        onClickCapture={preview || !page.id ? undefined : (e) => handleTrackedClick(page.id as string, e)}
         style={{ ...pageBackground(page), ...(fullScreen ? {} : { backgroundAttachment: "scroll" }), color: page.text_color, fontFamily: theme.fonts.body }}
       >
         <div className="w-full max-w-[480px] mx-auto px-4 py-8 space-y-5">
           {visible.map((b, i) => (
             preview && !isBlockComplete(b) ? (
-              <div key={b.id ?? i} className="relative">
+              <div key={b.id ?? i} className="relative" data-block-type={b.type}>
                 <div className="opacity-40 pointer-events-none">{renderBlock(b, syncedPosts)}</div>
                 <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-full bg-background px-3 py-1 text-[11px] font-medium text-foreground shadow">{uiText.editor.incompleteHidden}</span>
               </div>
-            ) : <div key={b.id ?? i}>{renderBlock(b, syncedPosts)}</div>
+            ) : <div key={b.id ?? i} data-block-type={b.type} data-block-id={b.id ?? undefined}>{renderBlock(b, syncedPosts)}</div>
           ))}
           <footer className="text-center pt-6 pb-4">
             {(page.footer_logo_url || page.show_travelbase_logo) && <img src={page.footer_logo_url || TRAVELBASE_FOOTER_LOGO} alt="" className="mx-auto mb-6 h-auto w-40 max-w-full object-contain" />}

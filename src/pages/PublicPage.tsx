@@ -7,6 +7,7 @@ import { PageRenderer } from "@/components/PageRenderer";
 import { getFeed } from "@/lib/linkinbio/instagram";
 import { fetchPageByAddress } from "@/lib/linkinbio/api";
 import { uiText } from "@/lib/uiText";
+import { track } from "@/lib/linkinbio/tracking";
 
 export default function PublicPage() {
   const { address = "" } = useParams();
@@ -16,6 +17,11 @@ export default function PublicPage() {
   });
 
   const feed = useQuery({ queryKey: ["instagram-feed", data?.page.id], queryFn: () => getFeed(data?.page.id ?? ""), enabled: !!data?.page.id });
+
+  const pageId = data?.page.id;
+  useEffect(() => {
+    if (pageId) track({ pageId, type: "view" });
+  }, [pageId]);
 
   useEffect(() => {
     if (data?.page) document.title = `${data.page.display_name} | Link in bio`;
