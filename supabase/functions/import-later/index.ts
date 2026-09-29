@@ -38,22 +38,9 @@ async function sha(s: string) {
   return [...new Uint8Array(b)].map((x) => x.toString(16).padStart(2, '0')).join('').slice(0, 20);
 }
 
-async function processOne(later: string) {
-  const client = db();
-  const address = toAddress(later);
-  const report: Record<string, unknown> = { later, address };
-  const { data: exists } = await client.from('pages').select('id').eq('address', address).maybeSingle();
-  if (exists) return { ...report, status: 'skipped (address exists)' };
-
-  const res = await fetch(`${API}/pages?nickname=${encodeURIComponent(later)}`);
-  if (!res.ok) return { ...report, status: `failed: Later returned ${res.status}` };
-  const page = (await res.json()).linkinbio_page;
-  if (!page) return { ...report, status: 'failed: no Later page' };
-  const sp = page.social_profiles?.[0];
-  const blocks = [...(page.linkinbio_blocks ?? [])].sort((a: any, b: any) => (a.index ?? 1e9) - (b.index ?? 1e9));
-
-  const { copy, stats } = copier(client, address);
-  const x = 0; void x;
+function copier(client: ReturnType<typeof db>, address: string) {
+  const stats = { copied: 0, failed: [] as string[] };
+  const copy = async (url: string) => {
   const _unused = async (url: string) => {
     if (!url) return '';
     if (!/^https:\/\/image-cdn\.later\.com\//i.test(url)) return url;
@@ -77,13 +64,58 @@ async function processOne(later: string) {
       const path = `later/${address}/${await sha(url)}.${ext}`;
       const { error } = await client.storage.from('page-images').upload(path, bytes, { contentType: ct, upsert: true });
       if (error) throw error;
-      copied++;
+      stats.copied++;
       return client.storage.from('page-images').getPublicUrl(path).data.publicUrl;
     } catch (e) {
-      failed.push(`${url} (${e instanceof Error ? e.message : 'error'})`);
+      stats.failed.push(`${url} (${e instanceof Error ? e.message : 'error'})`);
       return url;
     }
   };
+  };
+  return { copy, stats };
+}
+
+/** Re-copies any Later image still referenced by an imported page. */
+async function repairPage(client: ReturnType<typeof db>, pageId: string, address: string, report: Record<string, unknown>) {
+  const { copy, stats } = copier(client, address);
+  const swap = async (text: string) => {
+    const urls = [...new Set(text.match(/https:\/\/image-cdn\.later\.com\/[^"\s]+/g) ?? [])];
+    for (const u of urls) { const n = await copy(u); if (n !== u) text = text.split(u).join(n); }
+    return text;
+  };
+  const { data: page } = await client.from('pages').select('background_image_url').eq('id', pageId).single();
+  if (page?.background_image_url?.includes('image-cdn.later.com')) await client.from('pages').update({ background_image_url: await swap(page.background_image_url) }).eq('id', pageId);
+  const { data: blocks } = await client.from('blocks').select('id,content').eq('page_id', pageId);
+  for (const b of blocks ?? []) {
+    const t = JSON.stringify(b.content);
+    if (!t.includes('image-cdn.later.com')) continue;
+    const n = await swap(t);
+    if (n !== t) await client.from('blocks').update({ content: JSON.parse(n) }).eq('id', b.id);
+  }
+  return { ...report, status: 'repaired images', images_copied: stats.copied, images_failed: stats.failed.length, failed: stats.failed };
+}
+
+let repair = false;
+const imported = new Set(LIST.map(toAddress));
+
+async function processOne(later: string) {
+  const client = db();
+  const address = toAddress(later);
+  const report: Record<string, unknown> = { later, address };
+  const { data: exists } = await client.from('pages').select('id').eq('address', address).maybeSingle();
+  if (exists) {
+    if (!repair || !imported.has(address)) return { ...report, status: 'skipped (address exists)' };
+    return await repairPage(client, exists.id, address, report);
+  }
+
+  const res = await fetch(`${API}/pages?nickname=${encodeURIComponent(later)}`);
+  if (!res.ok) return { ...report, status: `failed: Later returned ${res.status}` };
+  const page = (await res.json()).linkinbio_page;
+  if (!page) return { ...report, status: 'failed: no Later page' };
+  const sp = page.social_profiles?.[0];
+  const blocks = [...(page.linkinbio_blocks ?? [])].sort((a: any, b: any) => (a.index ?? 1e9) - (b.index ?? 1e9));
+
+  const { copy, stats } = copier(client, address);
 
   const style = blocks.find((b: any) => b.block_type === 'style');
   const header = blocks.find((b: any) => b.block_type === 'header');
@@ -184,7 +216,7 @@ async function processOne(later: string) {
   if (error) return { ...report, status: `failed: ${error.message}` };
   const { error: bErr } = await client.from('blocks').insert(out.map((b, i) => ({ page_id: created.id, position: i, ...b })));
   if (bErr) { await client.from('pages').delete().eq('id', created.id); return { ...report, status: `failed: ${bErr.message}` }; }
-  return { ...report, status: 'created', blocks: out.length, images_copied: copied, images_failed: failed.length, failed };
+  return { ...report, status: 'created', blocks: out.length, images_copied: stats.copied, images_failed: stats.failed.length, failed: stats.failed };
 }
 
 Deno.serve(async (req) => {
@@ -192,6 +224,7 @@ Deno.serve(async (req) => {
   const url = new URL(req.url);
   const offset = Math.max(0, Number(url.searchParams.get('offset') ?? 0) || 0);
   const limit = Math.min(10, Math.max(1, Number(url.searchParams.get('limit') ?? 3) || 3));
+  repair = url.searchParams.get('repair') === '1';
   const results = [];
   for (const later of LIST.slice(offset, offset + limit)) {
     try { results.push(await processOne(later)); } catch (e) { results.push({ later, status: `failed: ${e instanceof Error ? e.message : 'error'}` }); }
