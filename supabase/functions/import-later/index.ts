@@ -52,8 +52,9 @@ async function processOne(later: string) {
   const sp = page.social_profiles?.[0];
   const blocks = [...(page.linkinbio_blocks ?? [])].sort((a: any, b: any) => (a.index ?? 1e9) - (b.index ?? 1e9));
 
-  let copied = 0; const failed: string[] = [];
-  const copy = async (url: string) => {
+  const { copy, stats } = copier(client, address);
+  const x = 0; void x;
+  const _unused = async (url: string) => {
     if (!url) return '';
     if (!/^https:\/\/image-cdn\.later\.com\//i.test(url)) return url;
     try {
@@ -62,7 +63,15 @@ async function processOne(later: string) {
       const bytes = await r.arrayBuffer();
       let ct = r.headers.get('content-type')?.split(';')[0] ?? 'image/jpeg';
       if (ct === 'image/jpg') ct = 'image/jpeg';
-      if (!ct.startsWith('image/')) throw new Error('not an image');
+      if (!ct.startsWith('image/')) {
+        // Later serves some images as application/octet-stream: detect by file signature.
+        const h = new Uint8Array(bytes.slice(0, 12));
+        if (h[0] === 0xff && h[1] === 0xd8) ct = 'image/jpeg';
+        else if (h[0] === 0x89 && h[1] === 0x50) ct = 'image/png';
+        else if (h[0] === 0x47 && h[1] === 0x49) ct = 'image/gif';
+        else if (h[8] === 0x57 && h[9] === 0x45) ct = 'image/webp';
+        else throw new Error('not an image');
+      }
       if (bytes.byteLength > 5 * 1024 * 1024) throw new Error('too big');
       const ext = ct === 'image/png' ? 'png' : ct === 'image/webp' ? 'webp' : ct === 'image/gif' ? 'gif' : 'jpg';
       const path = `later/${address}/${await sha(url)}.${ext}`;
