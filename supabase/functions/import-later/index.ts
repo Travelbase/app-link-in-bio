@@ -41,7 +41,6 @@ async function sha(s: string) {
 function copier(client: ReturnType<typeof db>, address: string) {
   const stats = { copied: 0, failed: [] as string[] };
   const copy = async (url: string) => {
-  const _unused = async (url: string) => {
     if (!url) return '';
     if (!/^https:\/\/image-cdn\.later\.com\//i.test(url)) return url;
     try {
