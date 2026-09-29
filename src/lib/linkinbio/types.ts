@@ -41,6 +41,8 @@ export interface GridPost {
   is_hidden?: boolean;
   is_video?: boolean;
   has_multiple?: boolean;
+  /** Instagram media id (from the Later import) — lets a later sync keep this post's link. */
+  instagram_media_id?: string;
 }
 
 export interface BlockContentMap {

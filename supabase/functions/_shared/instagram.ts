@@ -76,6 +76,10 @@ export async function syncPage(pageId: string) {
     const { data: previous, error: previousError } = await client.from('instagram_posts').select('instagram_media_id,link_url,is_hidden,image_url').eq('page_id', pageId);
     if (previousError) throw previousError;
     const old = new Map((previous ?? []).map((p) => [p.instagram_media_id, p]));
+    // Links from the manual grid (e.g. imported from Later), matched by Instagram media id.
+    const { data: grid } = await client.from('blocks').select('content').eq('page_id', pageId).eq('type', 'instagram_grid').limit(1).maybeSingle();
+    const manualLinks = new Map<string, string>();
+    for (const p of ((grid?.content as Record<string, any>)?.posts ?? [])) if (p?.instagram_media_id && p?.url) manualLinks.set(String(p.instagram_media_id), p.url);
     const rows = [];
     for (const [position, post] of media.entries()) {
       const prior = old.get(post.id);
@@ -86,7 +90,8 @@ export async function syncPage(pageId: string) {
         if (!source) continue;
         imageUrl = await copyImage(source, `instagram/${pageId}/${post.id}`);
       }
-      rows.push({ page_id: pageId, instagram_media_id: post.id, media_type: post.media_type, caption: post.caption ?? '', permalink: post.permalink ?? '', posted_at: post.timestamp, image_url: imageUrl, position, link_url: prior?.link_url ?? suggestedLink(post.caption ?? ''), is_hidden: prior?.is_hidden ?? false });
+      const linkUrl = prior ? prior.link_url : (manualLinks.get(String(post.id)) || suggestedLink(post.caption ?? ''));
+      rows.push({ page_id: pageId, instagram_media_id: post.id, media_type: post.media_type, caption: post.caption ?? '', permalink: post.permalink ?? '', posted_at: post.timestamp, image_url: imageUrl, position, link_url: linkUrl, is_hidden: prior?.is_hidden ?? false });
     }
     if (rows.length) {
       const { error: upsertError } = await client.from('instagram_posts').upsert(rows, { onConflict: 'instagram_media_id' });
