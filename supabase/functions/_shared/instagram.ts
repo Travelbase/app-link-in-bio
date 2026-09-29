@@ -90,7 +90,7 @@ export async function syncPage(pageId: string) {
         if (!source) continue;
         imageUrl = await copyImage(source, `instagram/${pageId}/${post.id}`);
       }
-      const linkUrl = prior?.link_url || manualLinks.get(String(post.id)) || (prior ? '' : suggestedLink(post.caption ?? ''));
+      const linkUrl = prior ? prior.link_url : (manualLinks.get(String(post.id)) || suggestedLink(post.caption ?? ''));
       rows.push({ page_id: pageId, instagram_media_id: post.id, media_type: post.media_type, caption: post.caption ?? '', permalink: post.permalink ?? '', posted_at: post.timestamp, image_url: imageUrl, position, link_url: linkUrl, is_hidden: prior?.is_hidden ?? false });
     }
     if (rows.length) {

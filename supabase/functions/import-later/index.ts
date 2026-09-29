@@ -104,7 +104,7 @@ async function processOne(later: string) {
   const avatarAtt = (header?.linkinbio_attachments ?? []).find((a: any) => a.name === 'avatar');
   out.push({ type: 'profile', is_visible: true, content: {
     name: hd.display_name || sp?.name || later, tagline: hd.bio ?? '',
-    avatar_url: await copy(imgOf(avatarAtt) || sp?.avatar_url || ''), avatar_custom: true,
+    avatar_url: await copy(imgOf(avatarAtt) || sp?.avatar_url || ''), avatar_custom: false,
   } });
 
   for (const b of blocks) {
