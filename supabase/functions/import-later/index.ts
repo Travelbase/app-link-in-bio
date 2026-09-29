@@ -70,7 +70,6 @@ function copier(client: ReturnType<typeof db>, address: string) {
       return url;
     }
   };
-  };
   return { copy, stats };
 }
 
