@@ -30,6 +30,8 @@ export const uiText = {
     retry: "Retry",
     newPage: "New page",
     switchPage: "Switch page",
+    searchPages: "Search pages…",
+    noPagesFound: "No pages match your search.",
     noPagesTitle: "No pages yet. Create your first one.",
     pageMissing: "This page doesn't exist.",
     backToEditor: "Open the editor",
