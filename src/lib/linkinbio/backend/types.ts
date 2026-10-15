@@ -37,6 +37,23 @@ export interface LinkInBioBackend {
   shortLink(pageId: string): Promise<string | null>;
   /** Visits through the short link. Null where there is no Bitly (staging). */
   linkStats(pageId: string, from: string, to: string): Promise<LinkStats | null>;
+
+  /** Brands with their colours from Amigo. Null where there is no Amigo (staging). */
+  amigoBrands(): Promise<AmigoBrand[] | null>;
+}
+
+export interface AmigoBrand {
+  code: string;
+  name: string;
+  palette: {
+    primary: string;
+    button: string | null;
+    buttonText: string | null;
+    background: string | null;
+    text: string | null;
+    blockBackground: string | null;
+    blockText: string | null;
+  };
 }
 
 export interface NewPageInput { handle: string; displayName: string; address: string; market: Market }

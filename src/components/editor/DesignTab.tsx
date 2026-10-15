@@ -1,4 +1,5 @@
-import { useId, type CSSProperties, type ReactNode } from "react";
+import { useId, useState, type CSSProperties, type ReactNode } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -10,6 +11,8 @@ import { uiText } from "@/lib/uiText";
 import { ImageUpload } from "./ImageUpload";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { backend } from "@/lib/linkinbio/backend";
+import { designFromBrand } from "@/lib/linkinbio/amigo";
 
 const t = uiText.editor.design;
 
@@ -22,6 +25,8 @@ export function DesignTab({ page, update }: Props) {
   const active = matchingTheme(page);
   return (
     <div className="space-y-6">
+      <AmigoSection page={page} update={update} />
+
       <Section title={t.themes}>
         <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
           {THEME_KEYS.map((k) => (
@@ -87,6 +92,43 @@ export function DesignTab({ page, update }: Props) {
           }))} />
       </Section>
     </div>
+  );
+}
+
+/** Colours from the brand's palette in Amigo. Hidden where there is no Amigo (staging). */
+function AmigoSection({ page, update }: Props) {
+  const brands = useQuery({ queryKey: ["amigo-brands"], queryFn: () => backend.amigoBrands(), staleTime: 10 * 60 * 1000, refetchOnWindowFocus: false });
+  const [code, setCode] = useState(page.brand_code ?? "");
+  if (brands.isError) return <Section title={t.amigo}><p className="text-sm text-destructive">{t.amigoFailed}</p></Section>;
+  if (!brands.data) return null;
+  const chosen = brands.data.find((b) => b.code === code);
+  const linked = brands.data.find((b) => b.code === page.brand_code);
+  return (
+    <Section title={t.amigo}>
+      <div className="flex flex-wrap items-center gap-2">
+        <Select value={code} onValueChange={setCode}>
+          <SelectTrigger className="w-56" aria-label={t.pickBrand}><SelectValue placeholder={t.pickBrand} /></SelectTrigger>
+          <SelectContent>
+            {brands.data.map((b) => (
+              <SelectItem key={b.code} value={b.code}>
+                <span className="flex items-center gap-2">
+                  <span className="flex">
+                    {[b.palette.primary, b.palette.button, b.palette.background].filter(Boolean).map((c, i) => (
+                      <span key={i} className="-ml-1 h-3.5 w-3.5 rounded-full border border-background first:ml-0" style={{ background: c! }} />
+                    ))}
+                  </span>
+                  {b.name}
+                </span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Button size="sm" disabled={!chosen} onClick={() => chosen && update({ ...designFromBrand(chosen), brand_code: chosen.code })}>
+          {t.importFromAmigo}
+        </Button>
+      </div>
+      {linked && <p className="text-xs text-muted-foreground">{t.linkedTo(linked.name)}</p>}
+    </Section>
   );
 }
 

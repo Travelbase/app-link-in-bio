@@ -27,6 +27,8 @@ export interface PageData extends PageDesign {
   instagram_handle: string;
   display_name: string;
   market?: Market;
+  /** The Amigo brand the colours came from (Core brand code). */
+  brand_code?: string | null;
   updated_at?: string;
 }
 

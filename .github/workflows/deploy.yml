@@ -81,7 +81,7 @@ jobs:
             --no-allow-unauthenticated \
             --service-account "$RUNTIME_SA" \
             --add-cloudsql-instances "$SQL_INSTANCE" \
-            --update-secrets "DATABASE_URL=link-in-bio-database-url:latest,INSTAGRAM_APP_SECRET=link-in-bio-instagram-app-secret:latest,BITLY_TOKEN=link-in-bio-bitly-token:latest" \
+            --update-secrets "DATABASE_URL=link-in-bio-database-url:latest,INSTAGRAM_APP_SECRET=link-in-bio-instagram-app-secret:latest,BITLY_TOKEN=link-in-bio-bitly-token:latest,CORE_API_TOKEN=link-in-bio-core-api-token:latest" \
             --update-env-vars "INSTAGRAM_APP_ID=1664356071864494,IMAGE_BUCKET=travelbase-link-in-bio-images,PUBLIC_URL=https://apps.travelbase.eu" \
             --memory 512Mi \
             --max-instances 3

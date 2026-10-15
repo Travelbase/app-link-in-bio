@@ -18,6 +18,11 @@ export const config = {
     groupGuid: () => env("BITLY_GROUP_GUID"),
     domain: () => env("BITLY_DOMAIN") || "bit.ly",
   },
+  /** Amigo's Core API, for brand colours. The token is a Core ApiToken with read:catalog. */
+  core: {
+    url: () => (env("CORE_API_URL") || "https://core.travelbase.eu/api/v1").replace(/\/+$/, ""),
+    token: () => env("CORE_API_TOKEN"),
+  },
 };
 
 export const publicPageUrl = (address: string) => `${config.appUrl()}/public/${address}`;
@@ -30,6 +35,7 @@ export function missingConfig(): string[] {
     ["INSTAGRAM_APP_ID", config.instagram.appId()],
     ["INSTAGRAM_APP_SECRET", config.instagram.appSecret()],
     ["BITLY_TOKEN", config.bitly.token()],
+    ["CORE_API_TOKEN", config.core.token()],
   ];
   return missing.filter(([, v]) => !v).map(([k]) => k);
 }

@@ -1,5 +1,6 @@
 import { createApp } from "@travelbase/app-api-kit";
 
+import { listAmigoBrands } from "./api/brands";
 import { instagram, instagramConfigured, instagramFeed, claimPending, pendingProfile, startNewPageInstagram, updateSyncedPost } from "./api/instagram";
 import { linkStats, shortLink } from "./api/links";
 import { addressTakenAction, createPage, deletePage, getPage, listPages, savePage, templateBlocks } from "./api/pages";
@@ -22,11 +23,11 @@ const app = createApp({
   spaRoot: "./dist",
   title: "Link in bio API",
   version: "1.0.0",
-  description: "Pages, blocks, images, Instagram and Bitly for the link-in-bio editor. Public pages read from /a/link-in-bio/public/api.",
+  description: "Pages, blocks, images, Instagram, Bitly and Amigo brand colours for the link-in-bio editor. Public pages read from /a/link-in-bio/public/api.",
   actions: [
     listPages, getPage, savePage, addressTakenAction, templateBlocks, createPage, deletePage,
     instagramFeed, instagram, updateSyncedPost, instagramConfigured, startNewPageInstagram, pendingProfile, claimPending,
-    shortLink, linkStats,
+    shortLink, linkStats, listAmigoBrands,
   ],
 });
 
