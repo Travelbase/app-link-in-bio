@@ -69,7 +69,9 @@ export const linkStats = defineAction({
       select l.bitlink, l.custom_link from page_short_links l join pages p on p.id = l.page_id and p.address = l.address where l.page_id = ${pageId}`;
     if (!page) return null;
     try {
-      const result = { ...(await stats(page.bitlink, from, to, ctx.log)), ...(page.custom_link ? { link: `https://${page.custom_link}` } : {}) };
+      // Bitly counts each back-half on its own, so a renamed link adds up the old and the new name.
+      const parts = await Promise.all([page.bitlink, page.custom_link].filter((l): l is string => !!l).map((l) => stats(l, from, to, ctx.log)));
+      const result = { ...mergeStats(parts), link: `https://${page.custom_link ?? page.bitlink}` };
       ctx.log("data.read.completed", { provider: "bitly", page_id: pageId });
       return result;
     } catch (e) {
@@ -77,3 +79,19 @@ export const linkStats = defineAction({
     }
   },
 });
+
+type Stats = Awaited<ReturnType<typeof stats>>;
+
+/** Adds up the visits of several names of the same link. */
+export function mergeStats(parts: Stats[]): Omit<Stats, "link"> {
+  const sum = <K extends string>(rows: Record<K | "clicks", string | number>[], key: K) => {
+    const m = new Map<string, number>();
+    for (const r of rows) m.set(String(r[key]), (m.get(String(r[key])) ?? 0) + Number(r.clicks));
+    return [...m].map(([k, clicks]) => ({ [key]: k, clicks })).sort((a, b) => b.clicks - a.clicks);
+  };
+  return {
+    daily: sum(parts.flatMap((p) => p.daily), "day").sort((a, b) => String(a.day).localeCompare(String(b.day))) as Stats["daily"],
+    countries: sum(parts.flatMap((p) => p.countries), "country") as Stats["countries"],
+    referrers: sum(parts.flatMap((p) => p.referrers), "name") as Stats["referrers"],
+  };
+}
