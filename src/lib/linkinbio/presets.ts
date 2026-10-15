@@ -6,8 +6,11 @@ type ThemeKey = keyof typeof uiText.editor.design.themeNames;
 
 type DesignPreset = Omit<PageDesign, "background_image_url" | "footer_logo_url" | "show_travelbase_logo">;
 
+/** Public base URL of the image store: Lovable Cloud's page-images bucket, or VITE_IMAGE_BASE_URL in production. */
+const IMAGE_BASE = (import.meta.env.VITE_IMAGE_BASE_URL as string | undefined) ?? `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/page-images`;
+
 /** The stored Travelbase green horizontal logo, used by the "Show Travelbase logo in footer" toggle. */
-export const TRAVELBASE_FOOTER_LOGO = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/page-images/travelbase%2FTB_Horizontal_Green.png`;
+export const TRAVELBASE_FOOTER_LOGO = `${IMAGE_BASE}/travelbase%2FTB_Horizontal_Green.png`;
 
 export const THEME_PRESETS: Record<ThemeKey, DesignPreset> = {
   travelbase: {

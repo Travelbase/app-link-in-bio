@@ -1,0 +1,23 @@
+{
+  "name": "link-in-bio-server",
+  "private": true,
+  "type": "module",
+  "description": "Production backend of link-in-bio on GCP: the app-api-kit API, the Instagram routes and the daily sync job. Not used by Lovable.",
+  "scripts": {
+    "start": "bun run server.ts",
+    "job": "bun run jobs/daily.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@travelbase/app-api-kit": "^0.1.0",
+    "postgres": "^3.4.5"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.1.14",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "bun": ">=1.1"
+  }
+}

@@ -12,7 +12,6 @@ import { InstagramGrid } from "./InstagramGrid";
 import { isBlockComplete } from "@/lib/linkinbio/validation";
 import { TRAVELBASE_FOOTER_LOGO } from "@/lib/linkinbio/presets";
 import { uiText } from "@/lib/uiText";
-import { handleTrackedClick } from "@/lib/linkinbio/tracking";
 
 function renderBlock(block: BlockData, syncedPosts?: SyncedPost[] | null) {
   switch (block.type) {
@@ -50,7 +49,6 @@ export function PageRenderer({ page, blocks, fullScreen = true, preview = false,
       <div
         className={fullScreen ? "min-h-screen w-full overflow-x-hidden" : "min-h-full w-full overflow-x-hidden"}
         data-preview={preview ? "true" : undefined}
-        onClickCapture={preview || !page.id ? undefined : (e) => handleTrackedClick(page.id as string, e)}
         style={{ ...pageBackground(page), ...(fullScreen ? {} : { backgroundAttachment: "scroll" }), color: page.text_color, fontFamily: theme.fonts.body }}
       >
         <div className="w-full max-w-[480px] mx-auto px-4 py-8 space-y-5">

@@ -15,19 +15,19 @@ import { DesignTab } from "@/components/editor/DesignTab";
 import { SettingsTab } from "@/components/editor/SettingsTab";
 import { NewPageDialog } from "@/components/editor/NewPageDialog";
 import { getFeed } from "@/lib/linkinbio/instagram";
+import { backend } from "@/lib/linkinbio/backend";
+import { editPath, publicPageUrl } from "@/lib/linkinbio/urls";
 import { fetchPageByAddress, fetchPageSummaries, type PageSummary } from "@/lib/linkinbio/api";
 import type { BlockData, PageData } from "@/lib/linkinbio/types";
 import { useEditorState, type SaveStatus } from "@/hooks/useEditorState";
 import { uiText } from "@/lib/uiText";
 import { cn } from "@/lib/utils";
 import { AnalyticsTab } from "@/components/editor/AnalyticsTab";
-import { markEditorDevice } from "@/lib/linkinbio/tracking";
 
 const t = uiText.editor;
 
 /** Switches the app to the internal-tool look (zinc + teal) while the editor is open. */
 function useEditorTheme() {
-  useEffect(() => { markEditorDevice(); }, []);
   useEffect(() => {
     document.documentElement.classList.add("editor-theme");
     const prev = document.title;
@@ -110,7 +110,7 @@ function Workspace({ initial, pages, onNewPage }: {
 
   const onSaved = useCallback((p: PageData) => {
     setSavedAddress(p.address);
-    if (window.location.pathname !== `/edit/${p.address}`) window.history.replaceState(window.history.state, "", `/edit/${p.address}`);
+    if (window.location.pathname !== editPath(p.address)) window.history.replaceState(window.history.state, "", editPath(p.address));
     void qc.invalidateQueries({ queryKey: ["editor-pages"] });
   }, [qc]);
 
@@ -118,7 +118,9 @@ function Workspace({ initial, pages, onNewPage }: {
   const feed = useQuery({ queryKey: ["instagram-feed", initial.page.id], queryFn: () => getFeed(initial.page.id ?? "") });
   const profile = ed.blocks.find((b) => b.type === "profile");
   const avatar = profile?.type === "profile" ? profile.content.avatar_url : null;
-  const publicUrl = `${window.location.origin}/${savedAddress}`;
+  // The bit.ly link is what goes in the Instagram bio; it follows the address (production only).
+  const short = useQuery({ queryKey: ["short-link", initial.page.id, savedAddress], queryFn: () => backend.shortLink(initial.page.id!), refetchOnWindowFocus: false });
+  const publicUrl = short.data ?? publicPageUrl(savedAddress);
 
   const copy = async () => {
     try { await navigator.clipboard.writeText(publicUrl); toast.success(t.linkCopied); } catch { /* ignore */ }
@@ -173,7 +175,7 @@ function Workspace({ initial, pages, onNewPage }: {
             <div className="min-h-0 flex-1 overflow-y-auto p-4">
               <TabsContent value="blocks" className="mt-0"><BlocksTab blocks={ed.blocks} setBlocks={ed.setBlocks} pageId={ed.page.id} /></TabsContent>
               <TabsContent value="design" className="mt-0"><DesignTab page={ed.page} update={ed.updatePage} /></TabsContent>
-              <TabsContent value="analytics" className="mt-0"><AnalyticsTab pageId={ed.page.id} publicUrl={publicUrl} /></TabsContent>
+              <TabsContent value="analytics" className="mt-0"><AnalyticsTab pageId={ed.page.id} shortUrl={short.data ?? null} /></TabsContent>
               <TabsContent value="settings" className="mt-0"><SettingsTab page={ed.page} savedAddress={savedAddress} update={ed.updatePage} blocks={ed.blocks} setBlocks={ed.setBlocks} /></TabsContent>
             </div>
           </Tabs>

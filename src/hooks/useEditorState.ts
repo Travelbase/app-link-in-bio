@@ -48,7 +48,7 @@ export function useEditorState(initial: { page: PageData; blocks: BlockData[] },
       onSavedRef.current?.(p);
     } catch (e) {
       const err = e as { code?: string; message?: string };
-      setErrorMessage(err.code === "23505" ? uiText.editor.address.taken : err.message ?? null);
+      setErrorMessage(err.code === "23505" || err.code === "address_taken" ? uiText.editor.address.taken : err.message ?? null);
       setStatus("error");
     } finally {
       saving.current = false;

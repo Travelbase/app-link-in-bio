@@ -1,0 +1,12 @@
+# Keeps the build context small. .env holds the Lovable (Supabase) settings, not used in production.
+.git
+.github
+.lovable
+.env
+node_modules
+server/node_modules
+server/dist
+dist
+.playwright-mcp
+*.log
+.DS_Store

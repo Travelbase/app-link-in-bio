@@ -1,0 +1,101 @@
+# Production deploy. Lovable syncs to the `lovable` branch (staging on Lovable Cloud); a developer
+# merges lovable into main, and every push to main builds one image and deploys the service
+# link-in-bio and the job link-in-bio-daily to travelbase-apps. See docs/runbook.md.
+
+name: deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GCP_PROJECT: travelbase-apps
+  REGION: europe-west1
+  SERVICE: link-in-bio
+  JOB: link-in-bio-daily
+  IMAGE: europe-west1-docker.pkg.dev/travelbase-apps/cloud-run-source-deploy/link-in-bio
+  SQL_INSTANCE: travelbase-apps:europe-west1:atlas-db
+  RUNTIME_SA: link-in-bio@travelbase-apps.iam.gserviceaccount.com
+
+permissions:
+  contents: read
+  id-token: write # Workload Identity Federation
+  packages: read  # @travelbase/app-api-kit from GitHub Packages
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun run build
+      - name: Server
+        working-directory: server
+        env:
+          GITHUB_TOKEN: ${{ secrets.PACKAGES_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          bun install
+          bun run typecheck
+          bun test
+
+  deploy:
+    needs: test
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.DEPLOY_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Build and push
+        run: |
+          gcloud auth configure-docker europe-west1-docker.pkg.dev -q
+          echo -n "${{ secrets.PACKAGES_TOKEN || secrets.GITHUB_TOKEN }}" > /tmp/npm_token
+          docker buildx build --platform linux/amd64 \
+            --secret id=npm_token,src=/tmp/npm_token \
+            -t "$IMAGE:$GITHUB_SHA" -t "$IMAGE:latest" --push .
+          rm -f /tmp/npm_token
+
+      - name: Deploy the service
+        # Private service behind apps-gateway: staff login for the editor, /public/ for visitors and Meta.
+        run: |
+          gcloud run deploy "$SERVICE" \
+            --project "$GCP_PROJECT" --region "$REGION" \
+            --image "$IMAGE:$GITHUB_SHA" \
+            --labels "app=$SERVICE" \
+            --ingress all \
+            --no-allow-unauthenticated \
+            --service-account "$RUNTIME_SA" \
+            --add-cloudsql-instances "$SQL_INSTANCE" \
+            --update-secrets "DATABASE_URL=link-in-bio-database-url:latest,INSTAGRAM_APP_SECRET=link-in-bio-instagram-app-secret:latest,BITLY_TOKEN=link-in-bio-bitly-token:latest" \
+            --update-env-vars "INSTAGRAM_APP_ID=1664356071864494,IMAGE_BUCKET=travelbase-link-in-bio-images,PUBLIC_URL=https://apps.travelbase.eu" \
+            --memory 512Mi \
+            --max-instances 3
+
+      - name: Deploy the daily job
+        run: |
+          gcloud run jobs deploy "$JOB" \
+            --project "$GCP_PROJECT" --region "$REGION" \
+            --image "$IMAGE:$GITHUB_SHA" \
+            --labels "app=$SERVICE" \
+            --service-account "$RUNTIME_SA" \
+            --set-cloudsql-instances "$SQL_INSTANCE" \
+            --set-secrets "DATABASE_URL=link-in-bio-database-url:latest,INSTAGRAM_APP_SECRET=link-in-bio-instagram-app-secret:latest" \
+            --set-env-vars "INSTAGRAM_APP_ID=1664356071864494,IMAGE_BUCKET=travelbase-link-in-bio-images,PUBLIC_URL=https://apps.travelbase.eu" \
+            --command bun --args run,jobs/daily.ts \
+            --max-retries 1 \
+            --task-timeout 1800

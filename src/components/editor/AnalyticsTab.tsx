@@ -10,8 +10,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { supabase } from "@/integrations/supabase/client";
+import { backend, type LinkStats } from "@/lib/linkinbio/backend";
 import { uiText } from "@/lib/uiText";
 import { cn } from "@/lib/utils";
 
@@ -34,13 +33,6 @@ function resolve(p: Period): { from: string; to: string } | null {
   if (p.key !== "custom") return { from: ymd(subDays(today, Number(p.key) - 1)), to: ymd(today) };
   if (!p.custom?.from) return null;
   return { from: ymd(p.custom.from), to: ymd(p.custom.to ?? p.custom.from) };
-}
-
-async function fetchStats<T>(pageId: string, kind: string, r: { from: string; to: string }): Promise<T> {
-  const { data, error } = await supabase.functions.invoke("analytics-stats", { body: { pageId, kind, ...r } });
-  if (error) throw error;
-  if (data?.error) throw new Error(String(data.error));
-  return data as T;
 }
 
 function downloadCsv(name: string, header: string[], rows: (string | number)[][]) {
@@ -84,10 +76,6 @@ function ErrorBox({ onRetry }: { onRetry: () => void }) {
     </div>
   );
 }
-
-interface Daily { day: string; views: number; button_clicks: number; post_clicks: number }
-interface TopLink { item_label: string; block_type: string; destination: string; clicks: number }
-interface Loc { country: string | null; city: string | null; views: number }
 
 function MetricChart({ title, total, totalLabel, data, dataKey, max, suffix = "", today }: {
   title: string; total: string; totalLabel: string; data: Record<string, number | string | boolean>[]; dataKey: string; max?: number; suffix?: string; today: string;
@@ -148,76 +136,10 @@ function Legend() {
   );
 }
 
-function Interactions({ pageId, publicUrl }: { pageId: string; publicUrl: string }) {
-  const [period, setPeriod] = useState<Period>({ key: "7" });
-  const r = resolve(period);
-  const q = useQuery({
-    queryKey: ["analytics", pageId, "interactions", r?.from, r?.to],
-    queryFn: () => fetchStats<{ daily: Daily[]; topLinks: TopLink[] }>(pageId, "interactions", r!),
-    enabled: !!r && !!pageId,
-  });
-  const today = ymd(new Date());
-  const rows = useMemo(() => (q.data?.daily ?? []).map((d) => {
-    const clicks = Number(d.button_clicks) + Number(d.post_clicks);
-    const views = Number(d.views);
-    return { day: d.day, label: format(parseISO(d.day), "d MMM"), views, button_clicks: Number(d.button_clicks), post_clicks: Number(d.post_clicks),
-      ctr: views ? Math.round((clicks / views) * 1000) / 10 : 0, hasData: views + clicks > 0 };
-  }), [q.data]);
-  const sum = (k: "views" | "button_clicks" | "post_clicks") => rows.reduce((a, b) => a + b[k], 0);
-  const views = sum("views"), bc = sum("button_clicks"), pc = sum("post_clicks");
-  const avg = views ? `${(((bc + pc) / views) * 100).toFixed(1)}%` : "0%";
-  const empty = !!q.data && views + bc + pc === 0;
-  const allClicks = (q.data?.topLinks ?? []).reduce((a, l) => a + Number(l.clicks), 0);
-
-  return (
-    <section className="space-y-4">
-      <div className="space-y-1">
-        <h3 className="text-lg font-semibold">{t.interactionsTitle}</h3>
-        <p className="text-sm text-muted-foreground">{t.interactionsIntro}</p>
-        <p className="text-sm">{t.pageLabel} <a href={publicUrl} target="_blank" rel="noopener noreferrer" className="break-all text-primary hover:underline">{publicUrl}</a></p>
-      </div>
-      <Legend />
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <RangePicker value={period} onChange={setPeriod} />
-        <Button size="sm" variant="outline" className="h-8" disabled={!rows.length}
-          onClick={() => downloadCsv(`page-interactions-${r?.from}-${r?.to}.csv`, t.csvDaily, rows.map((d) => [d.day, d.views, d.button_clicks, d.post_clicks, d.ctr]))}>
-          <Download className="h-3.5 w-3.5" />{t.exportCsv}
-        </Button>
-      </div>
-      {q.isError ? <ErrorBox onRetry={() => q.refetch()} /> : q.isLoading || !r ? (
-        <div className="space-y-4">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-44 w-full" />)}</div>
-      ) : (
-        <>
-          {empty && <p className="rounded-md border border-dashed p-4 text-center text-sm text-muted-foreground">{t.empty}</p>}
-          <MetricChart title={t.pageViews} total={String(views)} totalLabel={t.total} data={rows} dataKey="views" today={today} max={empty ? 4 : undefined} />
-          <MetricChart title={t.buttonClicks} total={String(bc)} totalLabel={t.total} data={rows} dataKey="button_clicks" today={today} max={empty ? 4 : undefined} />
-          <MetricChart title={t.postClicks} total={String(pc)} totalLabel={t.total} data={rows} dataKey="post_clicks" today={today} max={empty ? 4 : undefined} />
-          <MetricChart title={t.ctr} total={avg} totalLabel={t.avgCtr} data={rows} dataKey="ctr" suffix="%" today={today} max={empty ? 100 : undefined} />
-          <section className="border-t pt-3">
-            <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide">{t.topLinks}</h4>
-            {!q.data?.topLinks.length ? <p className="text-sm text-muted-foreground">{t.noLinks}</p> : (
-              <div className="overflow-x-auto rounded-md border">
-                <Table>
-                  <TableHeader><TableRow><TableHead>{t.colLink}</TableHead><TableHead>{t.colType}</TableHead><TableHead className="text-right">{t.colClicks}</TableHead><TableHead className="text-right">{t.colShare}</TableHead></TableRow></TableHeader>
-                  <TableBody>
-                    {q.data.topLinks.map((l, i) => (
-                      <TableRow key={i}>
-                        <TableCell className="max-w-[200px]"><p className="truncate font-medium" title={l.item_label}>{l.item_label}</p><p className="truncate text-xs text-muted-foreground" title={l.destination}>{l.destination}</p></TableCell>
-                        <TableCell className="whitespace-nowrap text-sm">{t.blockTypes[l.block_type] ?? l.block_type}</TableCell>
-                        <TableCell className="text-right tabular-nums">{l.clicks}</TableCell>
-                        <TableCell className="text-right tabular-nums">{allClicks ? `${((Number(l.clicks) / allClicks) * 100).toFixed(1)}%` : "–"}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </section>
-        </>
-      )}
-    </section>
-  );
-}
+const regionName = (() => {
+  try { const names = new Intl.DisplayNames(["en"], { type: "region" }); return (code: string) => names.of(code) ?? code; }
+  catch { return (code: string) => code; }
+})();
 
 function TopList({ title, items }: { title: string; items: { name: string; pct: number }[] }) {
   return (
@@ -238,79 +160,86 @@ function TopList({ title, items }: { title: string; items: { name: string; pct: 
   );
 }
 
-function Locations({ pageId }: { pageId: string }) {
-  const [period, setPeriod] = useState<Period>({ key: "7" });
+const top = (items: { name: string; clicks: number }[]) => {
+  const total = items.reduce((a, b) => a + b.clicks, 0);
+  return [...items].sort((a, b) => b.clicks - a.clicks).slice(0, 5).map((it) => ({ name: it.name, pct: total ? (it.clicks / total) * 100 : 0 }));
+};
+
+function CountryMap({ stats }: { stats: LinkStats }) {
+  const mapCounts = new Map<string, number>();
+  for (const c of stats.countries) {
+    const name = regionName(c.country);
+    mapCounts.set(MAP_ALIASES[name] ?? name, (mapCounts.get(MAP_ALIASES[name] ?? name) ?? 0) + c.clicks);
+  }
+  const maxC = Math.max(0, ...mapCounts.values());
+  return (
+    <div>
+      <h4 className="text-xs font-semibold uppercase tracking-wide">{t.mapTitle}</h4>
+      <div className="mt-2 flex items-center gap-2 text-[11px] uppercase text-muted-foreground">
+        {t.low}<span className="h-2 w-28 rounded-full" style={{ background: "linear-gradient(90deg, hsl(var(--primary) / 0.12), hsl(var(--primary)))" }} />{t.high}
+      </div>
+      <ComposableMap projectionConfig={{ scale: 150 }} width={800} height={400} className="mt-2 h-auto w-full">
+        <Geographies geography={GEO_URL}>
+          {({ geographies }) => geographies.map((geo) => {
+            const v = mapCounts.get(geo.properties.name as string) ?? 0;
+            const fill = v ? `hsl(var(--primary) / ${(0.2 + 0.8 * (v / maxC)).toFixed(2)})` : "hsl(var(--muted))";
+            return <Geography key={geo.rsmKey} geography={geo} fill={fill} stroke="hsl(var(--background))" strokeWidth={0.5}
+              style={{ default: { outline: "none" }, hover: { outline: "none", opacity: 0.8 }, pressed: { outline: "none" } }}>
+              <title>{`${geo.properties.name}: ${v}`}</title>
+            </Geography>;
+          })}
+        </Geographies>
+      </ComposableMap>
+    </div>
+  );
+}
+
+/** Visits through the page's bit.ly link, read from Bitly by the backend. */
+export function AnalyticsTab({ pageId, shortUrl }: { pageId?: string; shortUrl: string | null }) {
+  const [period, setPeriod] = useState<Period>({ key: "30" });
   const r = resolve(period);
   const q = useQuery({
-    queryKey: ["analytics", pageId, "locations", r?.from, r?.to],
-    queryFn: () => fetchStats<{ locations: Loc[] }>(pageId, "locations", r!),
+    queryKey: ["link-stats", pageId, r?.from, r?.to],
+    queryFn: () => backend.linkStats(pageId!, r!.from, r!.to),
     enabled: !!r && !!pageId,
   });
-  const locs = q.data?.locations ?? [];
-  const total = locs.reduce((a, l) => a + Number(l.views), 0);
-  const byCountry = new Map<string, number>();
-  const byCity = new Map<string, number>();
-  for (const l of locs) {
-    const c = l.country || t.unknown;
-    byCountry.set(c, (byCountry.get(c) ?? 0) + Number(l.views));
-    const city = l.city || t.unknown;
-    byCity.set(city, (byCity.get(city) ?? 0) + Number(l.views));
-  }
-  const top = (m: Map<string, number>) => [...m].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([name, v]) => ({ name, pct: total ? (v / total) * 100 : 0 }));
-  const mapCounts = new Map<string, number>();
-  byCountry.forEach((v, k) => mapCounts.set(MAP_ALIASES[k] ?? k, v));
-  const maxC = Math.max(0, ...mapCounts.values());
+  const today = ymd(new Date());
+  const rows = useMemo(() => (q.data?.daily ?? []).map((d) => ({ day: d.day, label: format(parseISO(d.day), "d MMM"), visits: d.clicks, hasData: d.clicks > 0 })), [q.data]);
+  const visits = rows.reduce((a, b) => a + b.visits, 0);
+  if (!pageId) return null;
 
   return (
     <section className="space-y-4">
       <div className="space-y-1">
-        <h3 className="text-lg font-semibold">{t.locationTitle}</h3>
-        <p className="text-sm text-muted-foreground">{t.locationIntro}</p>
+        <h3 className="text-lg font-semibold">{t.visitsTitle}</h3>
+        <p className="text-sm text-muted-foreground">{t.visitsIntro}</p>
+        {shortUrl && <p className="text-sm">{t.shortLink} <a href={shortUrl} target="_blank" rel="noopener noreferrer" className="break-all text-primary hover:underline">{shortUrl}</a></p>}
       </div>
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <RangePicker value={period} onChange={setPeriod} />
-        <Button size="sm" variant="outline" className="h-8" disabled={!locs.length}
-          onClick={() => downloadCsv(`page-locations-${r?.from}-${r?.to}.csv`, t.csvLocation, locs.map((l) => [l.country || t.unknown, l.city || t.unknown, l.views]))}>
-          <Download className="h-3.5 w-3.5" />{t.exportCsv}
-        </Button>
-      </div>
-      {q.isError ? <ErrorBox onRetry={() => q.refetch()} /> : q.isLoading || !r ? <Skeleton className="h-72 w-full" /> : (
+      {q.data === null ? <p className="rounded-md border border-dashed p-4 text-center text-sm text-muted-foreground">{t.noBitly}</p> : (
         <>
-          {!total && <p className="rounded-md border border-dashed p-4 text-center text-sm text-muted-foreground">{t.empty}</p>}
-          <div>
-            <h4 className="text-xs font-semibold uppercase tracking-wide">{t.mapTitle}</h4>
-            <div className="mt-2 flex items-center gap-2 text-[11px] uppercase text-muted-foreground">
-              {t.low}<span className="h-2 w-28 rounded-full" style={{ background: "linear-gradient(90deg, hsl(var(--primary) / 0.12), hsl(var(--primary)))" }} />{t.high}
-            </div>
-            <ComposableMap projectionConfig={{ scale: 150 }} width={800} height={400} className="mt-2 h-auto w-full">
-              <Geographies geography={GEO_URL}>
-                {({ geographies }) => geographies.map((geo) => {
-                  const v = mapCounts.get(geo.properties.name as string) ?? 0;
-                  const fill = v ? `hsl(var(--primary) / ${(0.2 + 0.8 * (v / maxC)).toFixed(2)})` : "hsl(var(--muted))";
-                  return <Geography key={geo.rsmKey} geography={geo} fill={fill} stroke="hsl(var(--background))" strokeWidth={0.5}
-                    style={{ default: { outline: "none" }, hover: { outline: "none", opacity: 0.8 }, pressed: { outline: "none" } }}>
-                    <title>{`${geo.properties.name}: ${v}`}</title>
-                  </Geography>;
-                })}
-              </Geographies>
-            </ComposableMap>
+          <Legend />
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <RangePicker value={period} onChange={setPeriod} />
+            <Button size="sm" variant="outline" className="h-8" disabled={!rows.length}
+              onClick={() => downloadCsv(`page-visits-${r?.from}-${r?.to}.csv`, t.csvDaily, rows.map((d) => [d.day, d.visits]))}>
+              <Download className="h-3.5 w-3.5" />{t.exportCsv}
+            </Button>
           </div>
-          <div className="grid gap-6 sm:grid-cols-2">
-            <TopList title={t.topCountry} items={top(byCountry)} />
-            <TopList title={t.topCity} items={top(byCity)} />
-          </div>
+          {q.isError ? <ErrorBox onRetry={() => q.refetch()} /> : q.isLoading || !r || !q.data ? (
+            <div className="space-y-4"><Skeleton className="h-44 w-full" /><Skeleton className="h-72 w-full" /></div>
+          ) : (
+            <>
+              {!visits && <p className="rounded-md border border-dashed p-4 text-center text-sm text-muted-foreground">{t.empty}</p>}
+              <MetricChart title={t.visits} total={String(visits)} totalLabel={t.total} data={rows} dataKey="visits" today={today} max={visits ? undefined : 4} />
+              <CountryMap stats={q.data} />
+              <div className="grid gap-6 sm:grid-cols-2">
+                <TopList title={t.topCountry} items={top(q.data.countries.map((c) => ({ name: regionName(c.country), clicks: c.clicks })))} />
+                <TopList title={t.referrers} items={top(q.data.referrers)} />
+              </div>
+            </>
+          )}
         </>
       )}
     </section>
-  );
-}
-
-export function AnalyticsTab({ pageId, publicUrl }: { pageId?: string; publicUrl: string }) {
-  if (!pageId) return null;
-  return (
-    <div className="space-y-10">
-      <Interactions pageId={pageId} publicUrl={publicUrl} />
-      <Locations pageId={pageId} />
-    </div>
   );
 }
