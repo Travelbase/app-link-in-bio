@@ -20,8 +20,8 @@ async function call<T>(method: "GET" | "POST", path: string, input: Query | obje
     init.body = JSON.stringify(input);
   }
   const res = await fetch(url, init);
-  // An expired gateway session answers with the login page instead of JSON.
-  if (!(res.headers.get("content-type") ?? "").includes("application/json")) throw new Error(uiText.sessionExpired);
+  // An expired gateway session answers 401, or with the login page instead of JSON.
+  if (res.status === 401 || !(res.headers.get("content-type") ?? "").includes("application/json")) throw new Error(uiText.sessionExpired);
   const body = (await res.json()) as { data: T; error: { code: string; message: string } | null };
   if (body.error) throw Object.assign(new Error(body.error.message), { code: body.error.code });
   return body.data;
@@ -68,6 +68,7 @@ export const httpBackend: LinkInBioBackend = {
   claimPending: (key, pageId) => api("POST", "instagram/claim", { key, pageId }),
 
   shortLink: async (pageId) => (await api<{ url: string | null }>("POST", "short-link", { pageId })).url,
+  renameShortLink: async (pageId, backHalf) => (await api<{ url: string }>("POST", "short-link/rename", { pageId, backHalf })).url,
   linkStats: (pageId, from, to) => api("GET", "link-stats", { pageId, from, to }),
   amigoBrands: () => api("GET", "amigo/brands"),
 };

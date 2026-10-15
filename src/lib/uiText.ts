@@ -18,6 +18,8 @@ export const uiText = {
   errorBody: "We couldn't load this page. Please try again.",
   retry: "Try again",
   sessionExpired: "Your login has expired. Reload the page.",
+  reload: "Reload",
+  cancel: "Cancel",
 
   editor: {
     tabs: { blocks: "Blocks", design: "Design", analytics: "Analytics", settings: "Settings" },
@@ -25,6 +27,10 @@ export const uiText = {
     copy: "Copy",
     linkCopied: "Link copied",
     openPage: "Open page",
+    editLink: "Change link",
+    linkName: "Link name",
+    saveLink: "Save link",
+    linkChanged: "Link changed. The old one keeps working.",
     showPreview: "Preview",
     showPanel: "Edit",
     lastUpdated: (t: string) => `Last updated ${t}`,

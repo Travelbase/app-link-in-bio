@@ -2,7 +2,7 @@ import { createApp } from "@travelbase/app-api-kit";
 
 import { listAmigoBrands } from "./api/brands";
 import { instagram, instagramConfigured, instagramFeed, claimPending, pendingProfile, startNewPageInstagram, updateSyncedPost } from "./api/instagram";
-import { linkStats, shortLink } from "./api/links";
+import { linkStats, renameLink, shortLink } from "./api/links";
 import { addressTakenAction, createPage, deletePage, getPage, listPages, savePage, templateBlocks } from "./api/pages";
 import { publicFeed, publicPage } from "./api/public";
 import { config, missingConfig } from "./lib/config";
@@ -27,7 +27,7 @@ const app = createApp({
   actions: [
     listPages, getPage, savePage, addressTakenAction, templateBlocks, createPage, deletePage,
     instagramFeed, instagram, updateSyncedPost, instagramConfigured, startNewPageInstagram, pendingProfile, claimPending,
-    shortLink, linkStats, listAmigoBrands,
+    shortLink, renameLink, linkStats, listAmigoBrands,
   ],
 });
 

@@ -94,9 +94,9 @@ export function SettingsTab({ page, savedAddress, update, blocks, setBlocks }: P
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="settings-address">{t.webAddress}</Label>
-          <div className="flex items-center rounded-md border focus-within:ring-2 focus-within:ring-ring">
-            <span className="pl-3 text-sm text-muted-foreground">{publicHostPrefix()}</span>
-            <Input id="settings-address" value={address} className="border-0 pl-0.5 focus-visible:ring-0"
+          <div className="flex h-10 items-center overflow-hidden rounded-md border bg-background focus-within:ring-2 focus-within:ring-ring">
+            <label htmlFor="settings-address" className="flex h-full shrink-0 cursor-text items-center whitespace-nowrap border-r bg-muted/50 px-3 text-sm text-muted-foreground">{publicHostPrefix()}</label>
+            <Input id="settings-address" value={address} className="h-full min-w-0 flex-1 rounded-none border-0 px-2 focus-visible:ring-0 focus-visible:ring-offset-0"
               onChange={(e) => setAddress(e.target.value.toLowerCase().trim())} aria-invalid={check.state === "error"} />
             <span className="pr-3">
               {check.state === "checking" && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" aria-label={t.checking} />}
