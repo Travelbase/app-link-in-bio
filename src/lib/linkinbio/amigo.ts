@@ -9,11 +9,14 @@ import type { PageDesign } from "./types";
 export function designFromBrand({ palette: p }: AmigoBrand): Partial<PageDesign> {
   const text = p.text ?? "#18181b";
   const blockText = p.blockText ?? text;
+  const background = p.background ?? "#ffffff";
+  // Some brands use their page background for blocks too; on a link page they would disappear.
+  const block = p.blockBackground && contrast(p.blockBackground, background) >= 1.1 ? p.blockBackground : p.primary;
   return {
     background_type: "color",
-    background_color: p.background ?? "#ffffff",
+    background_color: background,
     text_color: text,
-    block_color: p.blockBackground ?? p.primary,
+    block_color: block,
     block_text_color: blockText,
     // The call-to-action carries the block text colour; leave it out where that would be unreadable.
     button_accent_color: p.button && contrast(p.button, blockText) >= 3 ? p.button : null,
