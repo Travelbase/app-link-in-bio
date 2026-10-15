@@ -10,7 +10,8 @@ browser ── supabase.ts ──▶ Lovable Cloud        browser ── http.ts
            edge functions (Instagram)                                                        ├─ Cloud SQL atlas-db / link_in_bio
                                                                                              ├─ GCS travelbase-link-in-bio-images
                                                                                              ├─ Instagram Graph API
-                                                                                             └─ Bitly API
+                                                                                             ├─ Bitly API
+                                                                                             └─ Core API (Amigo brand colours)
                                                 Cloud Scheduler 05:00 UTC ──▶ Cloud Run Job link-in-bio-daily
 ```
 
@@ -42,3 +43,11 @@ The editor asks `api/short-link` when a page opens; the server creates
 `…/public/<address>` and keeps it in `page_short_links`. A renamed page gets a new link; the old
 one keeps pointing at the old address. The Analytics tab reads clicks, countries and referrers
 from Bitly through `api/link-stats`.
+
+## Amigo brand colours
+
+The Design tab's "Import from Amigo" reads `api/amigo/brands`: the server lists Core's brands with
+a read:catalog token and keeps the ones with a palette (`brand_theme_*` settings, in the brand's
+`settingValues`). Importing sets background, text, block and call-to-action colours the way the
+brand's website uses them, and stores the brand code in `pages.brand_code`. Staging has no Amigo,
+so the section does not show there.

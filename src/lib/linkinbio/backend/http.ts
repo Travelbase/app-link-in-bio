@@ -69,4 +69,5 @@ export const httpBackend: LinkInBioBackend = {
 
   shortLink: async (pageId) => (await api<{ url: string | null }>("POST", "short-link", { pageId })).url,
   linkStats: (pageId, from, to) => api("GET", "link-stats", { pageId, from, to }),
+  amigoBrands: () => api("GET", "amigo/brands"),
 };

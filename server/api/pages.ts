@@ -16,7 +16,7 @@ const TEMPLATE_FOR: Record<(typeof MARKETS)[number], string> = { NL: "standard",
 const PAGE_FIELDS = [
   "address", "instagram_handle", "display_name", "background_type", "background_color", "background_image_url", "text_color",
   "font", "block_color", "block_text_color", "block_shape", "block_style", "block_shadow", "button_accent_color",
-  "footer_logo_url", "market", "show_travelbase_logo",
+  "footer_logo_url", "market", "show_travelbase_logo", "brand_code",
 ] as const;
 
 const Page = z.object({ id: z.string().uuid(), address: z.string() }).passthrough();

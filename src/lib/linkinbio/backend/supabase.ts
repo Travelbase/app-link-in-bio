@@ -60,8 +60,9 @@ export const supabaseBackend: LinkInBioBackend = {
 
   async savePage(page, blocks, removedIds) {
     const supabase = await db();
+    // brand_code is production only: staging has no Amigo, and no column for it.
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id, updated_at, created_at, ...fields } = page as PageData & { created_at?: string };
+    const { id, updated_at, created_at, brand_code, ...fields } = page as PageData & { created_at?: string };
     const { data, error } = await supabase.from("pages").update(fields).eq("id", id!).select("updated_at").single();
     if (error) throw error;
     if (blocks.length) {
@@ -169,4 +170,5 @@ export const supabaseBackend: LinkInBioBackend = {
 
   shortLink: async () => null,
   linkStats: async () => null,
+  amigoBrands: async () => null,
 };

@@ -131,6 +131,11 @@ export const uiText = {
     },
 
     design: {
+      amigo: "Brand",
+      pickBrand: "Pick a brand",
+      importFromAmigo: "Import from Amigo",
+      linkedTo: (brand: string) => `Linked to ${brand}`,
+      amigoFailed: "Could not reach Amigo.",
       themes: "Themes",
       custom: "Custom",
       themeNames: { travelbase: "Travelbase", travelbaseHouse: "Travelbase house style", light: "Light", dark: "Dark", surf: "Surf" },
