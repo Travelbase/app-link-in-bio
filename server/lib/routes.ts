@@ -4,6 +4,7 @@ import { config } from "./config";
 import { sql } from "./db";
 import { configured, digest, exchange, message, saveConnection, syncPage, unguessable } from "./instagram";
 import { readSignedRequest } from "./meta-signed";
+import { driveThumbnail, PickerError, pickedImage, type Picked } from "./picker";
 import { deleteObject, objectName, putObject } from "./storage";
 
 /**
@@ -23,6 +24,8 @@ export async function rawRoutes(req: Request): Promise<Response | null> {
   if (path === `${PUBLIC_API}/instagram/deauthorize` && req.method === "POST") return deauthorize(req);
   if (path === `${PUBLIC_API}/instagram/data-deletion` && req.method === "POST") return dataDeletion(req);
   if (path === `${config.basePath}api/images` && req.method === "POST") return uploadImage(req);
+  if (path === `${config.basePath}api/picker/image` && req.method === "POST") return pickerImage(req);
+  if (path === `${config.basePath}api/picker/drive/thumbnail` && req.method === "GET") return pickerThumbnail(req);
   return null;
 }
 
@@ -135,5 +138,43 @@ async function uploadImage(req: Request): Promise<Response> {
   } catch (e) {
     log("ERROR", "external_api.failed", { provider: "cloud-storage", error: message(e) });
     return envelope(null, { code: "upstream_failed", message: "The image could not be stored." }, 502);
+  }
+}
+
+/**
+ * The bytes of an image picked in Media Search, Google Drive or Unsplash. The editor scales them
+ * and uploads them through /api/images, so they end up in the bucket like any upload.
+ */
+async function pickerImage(req: Request): Promise<Response> {
+  const email = req.headers.get("X-Forwarded-Email");
+  if (!email) return envelope(null, { code: "unauthorized", message: "Authentication required" }, 401);
+  const body = (await req.json().catch(() => null)) as Record<string, unknown> | null;
+  const str = (v: unknown) => (typeof v === "string" && v.length > 0 && v.length < 2000 ? v : null);
+  let pick: Picked | null = null;
+  if ((body?.kind === "library" || body?.kind === "drive") && str(body.id)) pick = { kind: body.kind, id: str(body.id)! };
+  if (body?.kind === "unsplash" && str(body.url)) pick = { kind: "unsplash", url: str(body.url)!, downloadLocation: str(body.downloadLocation) };
+  if (!pick) return envelope(null, { code: "bad_request", message: "Unknown image source." }, 400);
+  try {
+    const res = await pickedImage(pick);
+    log("INFO", "external_api.completed", { provider: pick.kind, event_detail: "picker.image", user: email });
+    res.headers.set("Cache-Control", "no-store");
+    return res;
+  } catch (e) {
+    log("ERROR", "external_api.failed", { provider: pick.kind, error: message(e) });
+    const status = e instanceof PickerError && e.status === 400 ? 400 : 502;
+    return envelope(null, { code: status === 400 ? "bad_request" : "upstream_failed", message: message(e) }, status);
+  }
+}
+
+/** A Drive thumbnail for the picker grid, fetched by Core as its service account. */
+async function pickerThumbnail(req: Request): Promise<Response> {
+  if (!req.headers.get("X-Forwarded-Email")) return new Response(null, { status: 401 });
+  const link = new URL(req.url).searchParams.get("link") ?? "";
+  try {
+    const { bytes, contentType } = await driveThumbnail(link);
+    return new Response(bytes, { headers: { "Content-Type": contentType, "Cache-Control": "private, max-age=3600" } });
+  } catch (e) {
+    log("WARNING", "external_api.failed", { provider: "google-drive", event_detail: "thumbnail", error: message(e) });
+    return new Response(null, { status: 502 });
   }
 }

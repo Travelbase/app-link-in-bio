@@ -138,14 +138,33 @@ export const uiText = {
     },
 
     upload: {
-      upload: "Upload image",
+      upload: "Choose image",
       replace: "Replace image",
       uploading: "Uploading…",
-      hint: "For best results, upload an image up to 2048 pixels wide.",
+      hint: "Larger photos are scaled to 2048 pixels.",
       tooBig: "This image is larger than 5 MB. Please choose a smaller one.",
       notImage: "Only image files can be uploaded.",
       failed: "Upload failed. Please try again.",
       retry: "Retry upload",
+    },
+
+    picker: {
+      title: "Choose an image",
+      library: "Travelbase media",
+      drive: "Google Drive",
+      computer: "Computer",
+      unsplash: "Unsplash",
+      drop: "Drop an image here",
+      browse: "Browse files",
+      search: "Search",
+      searchDrive: "Search this drive",
+      searchUnsplash: "Search Unsplash",
+      loadMore: "Load more",
+      nothing: "Nothing found.",
+      emptyFolder: "No images or folders here.",
+      noDrives: "No shared drives found.",
+      failed: "Could not load this. Try again.",
+      by: (name: string) => `Photo by ${name} on Unsplash`,
     },
 
     design: {

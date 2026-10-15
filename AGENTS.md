@@ -9,7 +9,8 @@
 - Undo/redo is browser memory in `useEditorState` (`src/lib/linkinbio/history.ts`), lost on reload; edits of one kind within 1s are one step. Cmd+Z, Shift+Cmd+Z and Ctrl+Y work everywhere in the editor.
 - Addresses "edit", "admin", "api", "settings" are reserved (DB check + `RESERVED_ADDRESSES`) — so editor routes never clash with pages.
 - Editor uses zinc/teal via `html.editor-theme` CSS variables — internal-tool look without touching public pages.
-- Image uploads go by XHR (for progress), max 5 MB: straight to the `page-images` bucket on Lovable Cloud, through `/api/images` to the Cloud Storage bucket `travelbase-link-in-bio-images` in production.
+- Image uploads go by XHR (for progress), max 5 MB (photos are scaled in the browser first): straight to the `page-images` bucket on Lovable Cloud, through `/api/images` to the Cloud Storage bucket `travelbase-link-in-bio-images` in production.
+- Every image field opens `ImagePickerDialog`, Amigo's sources: Media Search, Google Drive and Unsplash go through Core's `_actions` from `server/lib/picker.ts` (Core token with `use:media-picker`), never from the browser; a pick is uploaded like a file, so it lands in the same bucket. Staging offers the computer only.
 - Optional CTA accent belongs to page design; the Travelbase footer logo is a per-page `show_travelbase_logo` toggle (URL constant in presets.ts), with an optional custom `footer_logo_url` overriding it; branded card treatments are activated by the Travelbase house-style design so other pages retain their look.
 - Instagram tokens and one-time OAuth requests stay in server-only tables; public post rows expose only copied media, captions and editable links — never put Meta credentials in browser code.
 - Instagram sync lives on the server (edge functions on Lovable Cloud, `server/lib/instagram.ts` in production) and stores images in the image bucket; manual grid content remains separate so disconnect can fall back without rewriting blocks.

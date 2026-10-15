@@ -28,6 +28,19 @@ export interface LinkInBioBackend {
   /** Uploads an image with progress reporting; resolves to its public URL. */
   uploadImage(file: File, onProgress: (pct: number) => void): Promise<string>;
 
+  /** Which image picker tabs work besides upload. All false where there is no Amigo (staging). */
+  imageSources(): Promise<ImageSources>;
+  /** The iframe URL of Travelbase Media Search. */
+  libraryPickerUrl(): Promise<string>;
+  driveSharedDrives(): Promise<SharedDrive[]>;
+  /** A Drive folder, or a search across the shared drive when `term` is set. */
+  driveList(scope: DriveScope, term: string, pageToken: string | null): Promise<DrivePage>;
+  /** An <img> source for a Drive item's thumbnail. */
+  driveThumbnailUrl(thumbnailLink: string): string;
+  unsplashSearch(q: string, page: number): Promise<UnsplashPage>;
+  /** The bytes of a picked image, ready to scale and upload with `uploadImage`. */
+  pickedImage(pick: PickedImage): Promise<Blob>;
+
   /** Synced posts of a page, or null when Instagram is not connected. */
   instagramFeed(pageId: string): Promise<SyncedPost[] | null>;
   instagram(action: "status" | "start" | "sync" | "disconnect", pageId: string): Promise<InstagramResult>;
@@ -48,6 +61,37 @@ export interface LinkInBioBackend {
   /** Brands with their colours from Amigo. Null where there is no Amigo (staging). */
   amigoBrands(): Promise<AmigoBrand[] | null>;
 }
+
+export interface ImageSources { library: boolean; drive: boolean; unsplash: boolean }
+
+export interface SharedDrive { id: string; name: string }
+export interface DriveScope { driveId: string; folderId?: string | null }
+export interface DriveItem {
+  id: string;
+  name: string;
+  mimeType: string;
+  isFolder: boolean;
+  thumbnailLink: string | null;
+  width: number | null;
+  height: number | null;
+}
+export interface DrivePage { items: DriveItem[]; nextPageToken: string | null }
+
+export interface UnsplashPhoto {
+  id: string;
+  description: string | null;
+  thumb: string | null;
+  regular: string | null;
+  downloadLocation: string | null;
+  author: string | null;
+  authorUrl: string | null;
+}
+export interface UnsplashPage { totalPages: number; results: UnsplashPhoto[] }
+
+export type PickedImage =
+  | { kind: "library"; id: string }
+  | { kind: "drive"; id: string }
+  | { kind: "unsplash"; url: string; downloadLocation: string | null };
 
 export interface AmigoBrand {
   code: string;

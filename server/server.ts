@@ -4,6 +4,7 @@ import { listAmigoBrands } from "./api/brands";
 import { instagram, instagramConfigured, instagramFeed, claimPending, pendingProfile, startNewPageInstagram, updateSyncedPost } from "./api/instagram";
 import { linkStats, renameLink, shortLink } from "./api/links";
 import { addressTakenAction, createPage, deletePage, discardDraft, getPage, listPages, publishPage, savePage, templateBlocks } from "./api/pages";
+import { driveList, driveSharedDrives, imageSources, libraryPicker, unsplash } from "./api/picker";
 import { publicFeed, publicPage } from "./api/public";
 import { config, missingConfig } from "./lib/config";
 import { migrate } from "./lib/db";
@@ -23,11 +24,12 @@ const app = createApp({
   spaRoot: "./dist",
   title: "Link in bio API",
   version: "1.0.0",
-  description: "Pages, blocks, images, Instagram, Bitly and Amigo brand colours for the link-in-bio editor. Public pages read from /a/link-in-bio/public/api.",
+  description: "Pages, blocks, images (with Amigo's picker sources), Instagram, Bitly and Amigo brand colours for the link-in-bio editor. Public pages read from /a/link-in-bio/public/api.",
   actions: [
     listPages, getPage, savePage, publishPage, discardDraft, addressTakenAction, templateBlocks, createPage, deletePage,
     instagramFeed, instagram, updateSyncedPost, instagramConfigured, startNewPageInstagram, pendingProfile, claimPending,
     shortLink, renameLink, linkStats, listAmigoBrands,
+    imageSources, libraryPicker, driveSharedDrives, driveList, unsplash,
   ],
 });
 
