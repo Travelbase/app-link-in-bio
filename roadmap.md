@@ -4,3 +4,5 @@
 - [x] Connected/manual editor and public clickable feed (connected flow awaits IT's app)
 - [x] Replace stock feed placeholders on the two existing pages
 - [x] Verify manual preview, callback URL, setup-missing state, and desktop/mobile links
+- [x] Cleanup before handover (unused files, import function, fixed texts, hard-coded URLs)
+- [x] Briefing for production pipeline (staging Lovable, production GCP)

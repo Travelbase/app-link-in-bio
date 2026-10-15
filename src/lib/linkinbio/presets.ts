@@ -7,7 +7,7 @@ type ThemeKey = keyof typeof uiText.editor.design.themeNames;
 type DesignPreset = Omit<PageDesign, "background_image_url" | "footer_logo_url" | "show_travelbase_logo">;
 
 /** The stored Travelbase green horizontal logo, used by the "Show Travelbase logo in footer" toggle. */
-export const TRAVELBASE_FOOTER_LOGO = "https://pqgcdnytqcrlgzyrouqi.supabase.co/storage/v1/object/public/page-images/travelbase%2FTB_Horizontal_Green.png";
+export const TRAVELBASE_FOOTER_LOGO = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/page-images/travelbase%2FTB_Horizontal_Green.png`;
 
 export const THEME_PRESETS: Record<ThemeKey, DesignPreset> = {
   travelbase: {

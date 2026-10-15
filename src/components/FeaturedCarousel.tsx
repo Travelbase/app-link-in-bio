@@ -1,3 +1,4 @@
+import { uiText } from "@/lib/uiText";
 import { useRef, useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { BlockContentMap } from "@/lib/linkinbio/types";
@@ -32,10 +33,10 @@ export function FeaturedCarousel({ content }: { content: BlockContentMap["carous
 
   return (
     <div className="relative w-full animate-fade-in-up">
-      <button aria-label="Previous" onClick={() => scroll("left")} className={cn(navBtn, "left-0", canScrollLeft ? "opacity-100" : "opacity-0 pointer-events-none")}>
+      <button aria-label={uiText.carouselPrevious} onClick={() => scroll("left")} className={cn(navBtn, "left-0", canScrollLeft ? "opacity-100" : "opacity-0 pointer-events-none")}>
         <ChevronLeft className="h-4 w-4" />
       </button>
-      <button aria-label="Next" onClick={() => scroll("right")} className={cn(navBtn, "right-0", canScrollRight ? "opacity-100" : "opacity-0 pointer-events-none")}>
+      <button aria-label={uiText.carouselNext} onClick={() => scroll("right")} className={cn(navBtn, "right-0", canScrollRight ? "opacity-100" : "opacity-0 pointer-events-none")}>
         <ChevronRight className="h-4 w-4" />
       </button>
 

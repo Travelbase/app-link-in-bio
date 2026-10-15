@@ -17,3 +17,4 @@
 - Incomplete blocks (missing required link/image, see `isBlockComplete`) are hidden publicly and dimmed in the editor preview — nothing half-finished goes live.
 - The daily sync refreshes the Profile avatar from Instagram unless `avatar_custom` is set on the profile block (set when the team uploads a photo).
 - Analytics: public pages send fire-and-forget beacons to `analytics-track` (geo resolved server-side, no IP/UA/cookies stored, bots and editor devices skipped); the server-only `analytics_events` table is read only via `analytics-stats` aggregates — privacy without a cookie banner.
+- Lovable Cloud is staging; production runs on GCP via GitHub (`lovable` → `main`), so schema changes must be additive migrations only and environment-specific URLs come from env/config (`VITE_SUPABASE_URL`, `PUBLIC_APP_URL`, `ALLOWED_ORIGINS`, `internal_job_secrets.functions_base_url`), never hard-coded.

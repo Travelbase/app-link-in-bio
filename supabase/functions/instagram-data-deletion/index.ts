@@ -2,7 +2,7 @@ import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { db } from '../_shared/instagram.ts';
 import { readSignedRequest } from '../_shared/meta-signed.ts';
 
-const STATUS_BASE = 'https://1ac32895-ee15-4dba-bafb-925b49045861.lovable.app/data-deletion';
+const STATUS_BASE = `${(Deno.env.get('PUBLIC_APP_URL') ?? 'https://app-link-in-bio.lovable.app').replace(/\/$/, '')}/data-deletion`;
 
 // Meta calls this when a user asks for their data to be deleted: connection, token and synced posts go.
 Deno.serve(async (req) => {
