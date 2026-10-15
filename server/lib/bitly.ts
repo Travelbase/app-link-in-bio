@@ -72,7 +72,10 @@ export async function renameShortLink(pageId: string, backHalf: string, log: Log
   const custom = `${config.bitly.domain()}/${backHalf}`;
   if (current === `https://${custom}`) return current;
   try {
-    await bitly("/custom_bitlinks", { method: "POST", body: JSON.stringify({ custom_bitlink: custom, bitlink_id: row!.bitlink }) });
+    // Bitly hangs a back-half on the original bitlink only; ours is often a custom one already (bit.ly/tb-…).
+    const original = await bitly<{ bitlink: { id: string } }>(`/custom_bitlinks/${encodeURIComponent(row!.bitlink)}`)
+      .then((r) => r.bitlink.id, () => row!.bitlink);
+    await bitly("/custom_bitlinks", { method: "POST", body: JSON.stringify({ custom_bitlink: custom, bitlink_id: original }) });
   } catch (error) {
     log("external_api.failed", { provider: "bitly", step: "rename", back_half: backHalf, error: String(error) });
     throw Object.assign(new Error(String(error)), { taken: /already|taken|exist|ALREADY_A_BITLY_LINK|409/i.test(String(error)) });
