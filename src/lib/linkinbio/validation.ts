@@ -3,7 +3,7 @@ import type { BlockData } from "./types";
 
 const t = uiText.editor;
 
-export const RESERVED_ADDRESSES = ["edit", "admin", "api", "settings", "data-deletion", "instagram-callback"];
+export const RESERVED_ADDRESSES = ["edit", "admin", "api", "settings", "data-deletion", "instagram-callback", "public"];
 const ADDRESS_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 /** Returns an error message, or null when the address format is fine (uniqueness is checked separately). */

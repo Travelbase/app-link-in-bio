@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { backend, type PendingProfile } from './backend';
 import { uiText } from '@/lib/uiText';
 
 /** Turns Instagram's technical refusal into plain language; keeps the original as detail. */
@@ -7,42 +7,13 @@ export function friendlyConnectError(reason: string): { message: string; detail?
   return { message: reason };
 }
 
-export interface SyncedPost {
-  id: string;
-  page_id: string;
-  instagram_media_id: string;
-  media_type: 'IMAGE' | 'VIDEO' | 'CAROUSEL_ALBUM';
-  caption: string;
-  permalink: string;
-  posted_at: string;
-  image_url: string;
-  link_url: string;
-  is_hidden: boolean;
-  position: number;
-}
+export type { SyncedPost, PendingProfile } from './backend';
 
-export async function getFeed(pageId: string): Promise<SyncedPost[] | null> {
-  const { data: status, error: statusError } = await supabase.functions.invoke('instagram-connect', { body: { action: 'status', pageId } });
-  if (statusError) throw statusError;
-  if (!status?.connection) return null;
-  const { data, error } = await supabase.from('instagram_posts').select('*').eq('page_id', pageId).order('posted_at', { ascending: false }).limit(24);
-  if (error) throw error;
-  return (data ?? []) as SyncedPost[];
-}
+export const getFeed = (pageId: string) => backend.instagramFeed(pageId);
 
-export async function instagramAction(action: 'status' | 'start' | 'sync' | 'disconnect', pageId: string) {
-  const { data, error } = await supabase.functions.invoke('instagram-connect', { body: { action, pageId, origin: window.location.origin } });
-  if (error) throw error;
-  if (data?.error) throw new Error(data.error);
-  return data as { configured?: boolean; revoked?: boolean; connection?: { username: string; last_synced_at: string | null; last_error: string | null } | null; url?: string };
-}
+export const instagramAction = (action: 'status' | 'start' | 'sync' | 'disconnect', pageId: string) => backend.instagram(action, pageId);
 
-export async function updateSyncedPost(id: string, patch: { link_url?: string; is_hidden?: boolean }) {
-  const { error } = await supabase.from('instagram_posts').update(patch).eq('id', id);
-  if (error) throw error;
-}
-
-export interface PendingProfile { username: string; name: string; profile_picture_url: string }
+export const updateSyncedPost = (id: string, patch: { link_url?: string; is_hidden?: boolean }) => backend.updateSyncedPost(id, patch);
 
 export interface InstagramPopupResult { status: 'ok' | 'error' | 'cancelled'; key?: string; reason?: string }
 
@@ -78,8 +49,8 @@ export async function newPageInstagram(action: 'configured' | 'start_new'): Prom
 export async function newPageInstagram(action: 'pending_profile', key: string): Promise<PendingProfile>;
 export async function newPageInstagram(action: 'claim_pending', key: string, pageId: string): Promise<{ ok: boolean; syncError?: string }>;
 export async function newPageInstagram(action: string, key?: string, pageId?: string) {
-  const { data, error } = await supabase.functions.invoke('instagram-connect', { body: { action, key, pageId, origin: window.location.origin } });
-  if (data?.error) throw new Error(data.error);
-  if (error) throw error;
-  return data;
+  if (action === 'configured') return { configured: await backend.instagramConfigured() };
+  if (action === 'start_new') return backend.startNewPageInstagram();
+  if (action === 'pending_profile') return backend.pendingProfile(key!);
+  return backend.claimPending(key!, pageId!);
 }

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { publicHostPrefix } from "@/lib/linkinbio/urls";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -189,7 +190,7 @@ export function NewPageDialog({ open, onOpenChange, pendingKey, connectError }: 
                 <div className="space-y-1.5">
                   <Label htmlFor="new-address">{t.settings.webAddress}</Label>
                   <div className="flex items-center rounded-md border focus-within:ring-2 focus-within:ring-ring">
-                    <span className="pl-3 pr-1.5 text-sm text-muted-foreground">{window.location.host}/</span>
+                    <span className="pl-3 pr-1.5 text-sm text-muted-foreground">{publicHostPrefix()}</span>
                     <Input id="new-address" value={address} className="border-0 pl-0 focus-visible:ring-0"
                       onChange={(e) => { setAddressTouched(true); setAddress(e.target.value.toLowerCase().trim()); }} />
                     <span className="pr-3">

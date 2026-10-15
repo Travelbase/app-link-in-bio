@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { publicHostPrefix } from "@/lib/linkinbio/urls";
 import { useNavigate } from "react-router-dom";
 import { ChevronDown, Plus, Search } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -40,7 +41,7 @@ export function PageSwitcher({ current, pages, onNewPage }: Props) {
         <PageAvatar url={current.avatar_url} name={current.display_name} />
         <span className="min-w-0 flex-1">
           <span className="block truncate text-sm font-semibold leading-tight">{current.display_name}</span>
-          <span className="block truncate text-xs text-muted-foreground">{window.location.host}/{current.address}</span>
+          <span className="block truncate text-xs text-muted-foreground">{publicHostPrefix()}{current.address}</span>
         </span>
         <ChevronDown className="h-4 w-4 shrink-0" />
       </DropdownMenuTrigger>

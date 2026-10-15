@@ -1,4 +1,5 @@
 import { Toaster } from "@/components/ui/toaster";
+import { APP_BASE } from "./lib/linkinbio/urls";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -16,12 +17,14 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
+      <BrowserRouter basename={APP_BASE}>
         <Routes>
           <Route path="/" element={<Editor />} />
           <Route path="/edit/:address" element={<Editor />} />
           <Route path="/data-deletion" element={<DataDeletion />} />
+          <Route path="/public/data-deletion" element={<DataDeletion />} />
           <Route path="/instagram-callback" element={<InstagramCallback />} />
+          <Route path="/public/:address" element={<PublicPage />} />
           <Route path="/:address" element={<PublicPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

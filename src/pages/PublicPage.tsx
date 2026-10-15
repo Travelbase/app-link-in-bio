@@ -4,24 +4,17 @@ import { useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageRenderer } from "@/components/PageRenderer";
-import { getFeed } from "@/lib/linkinbio/instagram";
-import { fetchPageByAddress } from "@/lib/linkinbio/api";
+import { backend } from "@/lib/linkinbio/backend";
 import { uiText } from "@/lib/uiText";
-import { track } from "@/lib/linkinbio/tracking";
 
 export default function PublicPage() {
   const { address = "" } = useParams();
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["public-page", address],
-    queryFn: () => fetchPageByAddress(address),
+    queryFn: () => backend.publicPage(address),
   });
 
-  const feed = useQuery({ queryKey: ["instagram-feed", data?.page.id], queryFn: () => getFeed(data?.page.id ?? ""), enabled: !!data?.page.id });
-
-  const pageId = data?.page.id;
-  useEffect(() => {
-    if (pageId) track({ pageId, type: "view" });
-  }, [pageId]);
+  const feed = useQuery({ queryKey: ["instagram-feed", data?.page.id], queryFn: () => backend.publicFeed(data?.page.id ?? ""), enabled: !!data?.page.id });
 
   useEffect(() => {
     if (data?.page) document.title = `${data.page.display_name} | Link in bio`;

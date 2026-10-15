@@ -8,6 +8,27 @@ https://linkin.bio/travelbasenomadsnl/?fbclid=PAZXh0bgNhZW0CMTEAc3J0YwZhcHBfaWQM
 
 But we would like to build it ourselves to save costs. You can keep all the same features as on later.com. You can also check linktree as example.
 
+## Where it runs
+
+| | Branch | URL |
+|---|---|---|
+| Staging (Lovable Cloud) | `lovable` | https://app-link-in-bio.lovable.app |
+| Production (GCP) | `main` | https://apps.travelbase.eu/a/link-in-bio/ |
+
+Marketing edits in Lovable; a developer merges `lovable` into `main` to go live. How, and what to
+port along the way: [docs/runbook.md](docs/runbook.md). How it fits together:
+[docs/architecture.md](docs/architecture.md). Rules for code: [AGENTS.md](AGENTS.md).
+
+Production backend locally (Postgres on :55432, kit linked from travelbase-apps):
+
+```sh
+VITE_APP_BASE=/a/link-in-bio/ VITE_DATA_BACKEND=http npm run build
+cp dist/a/link-in-bio/public/index.html dist/a/link-in-bio/ && cp -R dist server/
+cd server && DATABASE_URL=postgres://postgres:pw@localhost:55432/link_in_bio bun run server.ts
+```
+
+Send `X-Forwarded-Email: you@travelbase.eu` to reach the editor and `/api` without the gateway.
+
 This project was built with [Lovable](https://lovable.dev).
 
 **Live app**: https://app-link-in-bio.lovable.app

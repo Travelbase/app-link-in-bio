@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { publicHostPrefix } from "@/lib/linkinbio/urls";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -94,7 +95,7 @@ export function SettingsTab({ page, savedAddress, update, blocks, setBlocks }: P
         <div className="space-y-1.5">
           <Label htmlFor="settings-address">{t.webAddress}</Label>
           <div className="flex items-center rounded-md border focus-within:ring-2 focus-within:ring-ring">
-            <span className="pl-3 text-sm text-muted-foreground">{window.location.host}/</span>
+            <span className="pl-3 text-sm text-muted-foreground">{publicHostPrefix()}</span>
             <Input id="settings-address" value={address} className="border-0 pl-0.5 focus-visible:ring-0"
               onChange={(e) => setAddress(e.target.value.toLowerCase().trim())} aria-invalid={check.state === "error"} />
             <span className="pr-3">
