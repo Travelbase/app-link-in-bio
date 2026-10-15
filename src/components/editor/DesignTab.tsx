@@ -13,19 +13,23 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { backend } from "@/lib/linkinbio/backend";
 import { designFromBrand } from "@/lib/linkinbio/amigo";
+import type { EditOptions } from "@/hooks/useEditorState";
+import { toast } from "sonner";
 
 const t = uiText.editor.design;
 
 interface Props {
   page: PageData;
-  update: (patch: Partial<PageData>) => void;
+  update: (patch: Partial<PageData>, edit?: EditOptions) => void;
+  /** Undoes the last edit; offered right after an Amigo import. */
+  onUndo?: () => void;
 }
 
-export function DesignTab({ page, update }: Props) {
+export function DesignTab({ page, update, onUndo }: Props) {
   const active = matchingTheme(page);
   return (
     <div className="space-y-6">
-      <AmigoSection page={page} update={update} />
+      <AmigoSection page={page} update={update} onUndo={onUndo} />
 
       <Section title={t.themes}>
         <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
@@ -96,7 +100,7 @@ export function DesignTab({ page, update }: Props) {
 }
 
 /** Colours from the brand's palette in Amigo. Hidden where there is no Amigo (staging). */
-function AmigoSection({ page, update }: Props) {
+function AmigoSection({ page, update, onUndo }: Props) {
   const brands = useQuery({ queryKey: ["amigo-brands"], queryFn: () => backend.amigoBrands(), staleTime: 10 * 60 * 1000, refetchOnWindowFocus: false });
   const [code, setCode] = useState(page.brand_code ?? "");
   if (brands.isError) return <Section title={t.amigo}><p className="text-sm text-destructive">{t.amigoFailed}</p></Section>;
@@ -123,7 +127,11 @@ function AmigoSection({ page, update }: Props) {
             ))}
           </SelectContent>
         </Select>
-        <Button size="sm" disabled={!chosen} onClick={() => chosen && update({ ...designFromBrand(chosen), brand_code: chosen.code })}>
+        <Button size="sm" disabled={!chosen} onClick={() => {
+          if (!chosen) return;
+          update({ ...designFromBrand(chosen), brand_code: chosen.code }, { coalesce: false });
+          toast.success(uiText.editor.importedFromAmigo, onUndo ? { action: { label: uiText.editor.undo, onClick: onUndo } } : undefined);
+        }}>
           {t.importFromAmigo}
         </Button>
       </div>

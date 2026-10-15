@@ -11,11 +11,16 @@ export interface LinkInBioBackend {
   publicPage(address: string): Promise<{ page: PageData; blocks: BlockData[] } | null>;
   /** Its synced Instagram posts, or null when Instagram is not connected. No login. */
   publicFeed(pageId: string): Promise<SyncedPost[] | null>;
-  getPage(address: string): Promise<{ page: PageData; blocks: BlockData[] } | null>;
+  /** The page as the editor works on it: its draft when there is one, else the live page. */
+  getPage(address: string): Promise<EditorPage | null>;
   /** All pages, most recently edited first. */
   listPages(): Promise<PageSummary[]>;
-  /** Saves the page settings and the full block list; returns the new updated_at. */
-  savePage(page: PageData, blocks: BlockData[], removedIds: string[]): Promise<string>;
+  /** Saves the page settings and the full block list as the draft; returns the new updated_at. Visitors don't see it. */
+  saveDraft(page: PageData, blocks: BlockData[]): Promise<string>;
+  /** Makes the draft live; returns published_at. */
+  publish(pageId: string): Promise<string>;
+  /** Throws the draft away. */
+  discardDraft(pageId: string): Promise<void>;
   isAddressTaken(address: string, exceptId?: string): Promise<boolean>;
   templateBlocks(market: Market): Promise<BlockData[]>;
   createPage(input: NewPageInput): Promise<{ id: string; address: string }>;
@@ -56,6 +61,14 @@ export interface AmigoBrand {
     blockBackground: string | null;
     blockText: string | null;
   };
+}
+
+export interface EditorPage {
+  page: PageData;
+  blocks: BlockData[];
+  hasDraft: boolean;
+  /** The address visitors use now; the draft may have another. */
+  liveAddress: string;
 }
 
 export interface NewPageInput { handle: string; displayName: string; address: string; market: Market }

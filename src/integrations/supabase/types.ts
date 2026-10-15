@@ -364,11 +364,13 @@ export type Database = {
           button_accent_color: string | null
           created_at: string
           display_name: string
+          draft: Json | null
           font: string
           footer_logo_url: string | null
           id: string
           instagram_handle: string
           market: string
+          published_at: string
           show_travelbase_logo: boolean
           text_color: string
           updated_at: string
@@ -386,11 +388,13 @@ export type Database = {
           button_accent_color?: string | null
           created_at?: string
           display_name?: string
+          draft?: Json | null
           font?: string
           footer_logo_url?: string | null
           id?: string
           instagram_handle?: string
           market?: string
+          published_at?: string
           show_travelbase_logo?: boolean
           text_color?: string
           updated_at?: string
@@ -408,11 +412,13 @@ export type Database = {
           button_accent_color?: string | null
           created_at?: string
           display_name?: string
+          draft?: Json | null
           font?: string
           footer_logo_url?: string | null
           id?: string
           instagram_handle?: string
           market?: string
+          published_at?: string
           show_travelbase_logo?: boolean
           text_color?: string
           updated_at?: string
