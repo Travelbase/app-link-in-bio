@@ -169,6 +169,7 @@ export const supabaseBackend: LinkInBioBackend = {
   claimPending: (key, pageId) => instagramConnect({ action: "claim_pending", key, pageId }),
 
   shortLink: async () => null,
+  renameShortLink: async () => { throw new Error("Short links exist in production only."); },
   linkStats: async () => null,
   amigoBrands: async () => null,
 };

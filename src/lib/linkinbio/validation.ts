@@ -24,6 +24,14 @@ export function suggestAddress(handle: string): string {
     .replace(/^-|-$/g, "");
 }
 
+/** What people paste, made into a link the page accepts: http:// becomes https://, a bare www.x.nl gets https://. */
+export function normalizeUrl(url: string): string {
+  const v = url.trim();
+  if (/^http:\/\//i.test(v)) return `https://${v.slice(7)}`;
+  if (/^www\.[^\s]+\.[^\s]+/i.test(v)) return `https://${v}`;
+  return v;
+}
+
 export function isValidUrl(url: string | undefined | null): boolean {
   if (!url) return false;
   return /^https:\/\/[^\s]+\.[^\s]+/i.test(url) || /^mailto:[^\s@]+@[^\s@]+/i.test(url);

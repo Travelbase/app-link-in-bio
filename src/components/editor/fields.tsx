@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { isValidUrl } from "@/lib/linkinbio/validation";
+import { isValidUrl, normalizeUrl } from "@/lib/linkinbio/validation";
 import { uiText } from "@/lib/uiText";
 import { SortableList } from "./SortableList";
 
@@ -32,7 +32,7 @@ export function UrlField({ label, value, onChange, optional, hint, onBlur }: {
     <div className="space-y-1.5">
       <Label htmlFor={id}>{label}</Label>
       <Input id={id} value={value ?? ""} inputMode="url" placeholder="https://" onBlur={onBlur}
-        onChange={(e) => onChange(e.target.value.trim())} aria-invalid={bad} className={bad ? "border-amber-500" : undefined} />
+        onChange={(e) => onChange(normalizeUrl(e.target.value))} aria-invalid={bad} className={bad ? "border-amber-500" : undefined} />
       {bad ? <p className="text-xs text-amber-700">{f.urlHint}</p> : hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
     </div>
   );

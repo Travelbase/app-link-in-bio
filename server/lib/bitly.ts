@@ -50,12 +50,36 @@ export async function ensureShortLink(pageId: string, log: Log): Promise<string 
   const db = sql();
   const [page] = await db<{ address: string }[]>`select address from pages where id = ${pageId}`;
   if (!page) return null;
-  const [existing] = await db<{ bitlink: string }[]>`select bitlink from page_short_links where page_id = ${pageId} and address = ${page.address}`;
-  if (existing) return `https://${existing.bitlink}`;
+  const [existing] = await db<{ bitlink: string; custom_link: string | null }[]>`
+    select bitlink, custom_link from page_short_links where page_id = ${pageId} and address = ${page.address}`;
+  if (existing) return `https://${existing.custom_link ?? existing.bitlink}`;
   const bitlink = await shorten(publicPageUrl(page.address), page.address, log);
   await db`insert into page_short_links (page_id, address, bitlink) values (${pageId}, ${page.address}, ${bitlink}) on conflict do nothing`;
   log("data.write.completed", { records_written: 1, table: "page_short_links" });
   return `https://${bitlink}`;
+}
+
+/**
+ * Gives the page's bitlink another back-half, bit.ly/<backHalf>. The old link keeps working and the
+ * visits stay on the same bitlink. Throws "taken" when Bitly has that back-half already.
+ */
+export async function renameShortLink(pageId: string, backHalf: string, log: Log): Promise<string> {
+  const current = await ensureShortLink(pageId, log);
+  if (!current) throw new Error("Bitly is not set up");
+  const db = sql();
+  const [row] = await db<{ bitlink: string; address: string }[]>`
+    select l.bitlink, l.address from page_short_links l join pages p on p.id = l.page_id and p.address = l.address where l.page_id = ${pageId}`;
+  const custom = `${config.bitly.domain()}/${backHalf}`;
+  if (current === `https://${custom}`) return current;
+  try {
+    await bitly("/custom_bitlinks", { method: "POST", body: JSON.stringify({ custom_bitlink: custom, bitlink_id: row!.bitlink }) });
+  } catch (error) {
+    log("external_api.failed", { provider: "bitly", step: "rename", back_half: backHalf, error: String(error) });
+    throw Object.assign(new Error(String(error)), { taken: /already|taken|exist|ALREADY_A_BITLY_LINK|409/i.test(String(error)) });
+  }
+  await db`update page_short_links set custom_link = ${custom} where page_id = ${pageId} and address = ${row!.address}`;
+  log("data.write.completed", { records_written: 1, table: "page_short_links", page_id: pageId });
+  return `https://${custom}`;
 }
 
 type Metric = { value: string; clicks: number };

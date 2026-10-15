@@ -23,6 +23,7 @@ import { useEditorState, type SaveStatus } from "@/hooks/useEditorState";
 import { uiText } from "@/lib/uiText";
 import { cn } from "@/lib/utils";
 import { AnalyticsTab } from "@/components/editor/AnalyticsTab";
+import { ShortLinkBar } from "@/components/editor/ShortLinkBar";
 
 const t = uiText.editor;
 
@@ -63,11 +64,12 @@ export default function Editor() {
   const dialog = <NewPageDialog open={newOpen} onOpenChange={(o) => { setNewOpen(o); if (!o) setPending(null); }} pendingKey={pending?.key} connectError={pending?.error} />;
 
   if (pagesQ.isError || pageQ.isError) {
+    const expired = [pagesQ.error, pageQ.error].some((e) => e?.message === uiText.sessionExpired);
     return (
       <Centered>
         <AlertCircle className="mx-auto h-6 w-6 text-destructive" />
-        <p>{t.loadError}</p>
-        <Button onClick={() => { void pagesQ.refetch(); void pageQ.refetch(); }}>{uiText.retry}</Button>
+        {expired ? <p>{uiText.sessionExpired}</p> : <p>{t.loadError}</p>}
+        <Button onClick={() => { if (expired) window.location.reload(); else { void pagesQ.refetch(); void pageQ.refetch(); } }}>{expired ? uiText.reload : uiText.retry}</Button>
       </Centered>
     );
   }
@@ -119,12 +121,9 @@ function Workspace({ initial, pages, onNewPage }: {
   const profile = ed.blocks.find((b) => b.type === "profile");
   const avatar = profile?.type === "profile" ? profile.content.avatar_url : null;
   // The bit.ly link is what goes in the Instagram bio; it follows the address (production only).
-  const short = useQuery({ queryKey: ["short-link", initial.page.id, savedAddress], queryFn: () => backend.shortLink(initial.page.id!), refetchOnWindowFocus: false });
+  const shortKey = ["short-link", initial.page.id, savedAddress];
+  const short = useQuery({ queryKey: shortKey, queryFn: () => backend.shortLink(initial.page.id!), refetchOnWindowFocus: false });
   const publicUrl = short.data ?? publicPageUrl(savedAddress);
-
-  const copy = async () => {
-    try { await navigator.clipboard.writeText(publicUrl); toast.success(t.linkCopied); } catch { /* ignore */ }
-  };
 
   return (
     <div className="flex h-[100dvh] flex-col overflow-hidden bg-background text-foreground">
@@ -134,14 +133,8 @@ function Workspace({ initial, pages, onNewPage }: {
       </header>
 
       <div className="flex flex-wrap items-center gap-2 border-b px-3 py-2 sm:px-4">
-        <div className="flex min-w-0 flex-1 basis-full sm:basis-auto items-center overflow-hidden rounded-md border text-sm">
-          <span className="shrink-0 px-2.5 font-medium">{t.yourLink}</span>
-          <a href={publicUrl} target="_blank" rel="noopener noreferrer" className="min-w-0 truncate text-primary underline-offset-2 hover:underline">{publicUrl}</a>
-          <Button variant="ghost" size="sm" className="ml-auto shrink-0 rounded-none border-l" onClick={copy}><Copy className="h-3.5 w-3.5" />{t.copy}</Button>
-        </div>
-        <Button variant="outline" size="sm" asChild>
-          <a href={publicUrl} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-3.5 w-3.5" />{t.openPage}</a>
-        </Button>
+        <ShortLinkBar url={publicUrl} pageId={initial.page.id} queryKey={shortKey} />
+        <span className="flex-1" />
         <Button variant="secondary" size="sm" className="lg:hidden" onClick={() => setMobileView((v) => (v === "panel" ? "preview" : "panel"))}>
           {mobileView === "panel" ? <><Eye className="h-3.5 w-3.5" />{t.showPreview}</> : <><PencilLine className="h-3.5 w-3.5" />{t.showPanel}</>}
         </Button>

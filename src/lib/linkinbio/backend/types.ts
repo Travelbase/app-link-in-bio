@@ -35,6 +35,8 @@ export interface LinkInBioBackend {
 
   /** The page's short link (bit.ly), created on first ask. Null where there is no Bitly (staging). */
   shortLink(pageId: string): Promise<string | null>;
+  /** Gives the short link another back-half (bit.ly/<backHalf>); resolves to the new link. */
+  renameShortLink(pageId: string, backHalf: string): Promise<string>;
   /** Visits through the short link. Null where there is no Bitly (staging). */
   linkStats(pageId: string, from: string, to: string): Promise<LinkStats | null>;
 
