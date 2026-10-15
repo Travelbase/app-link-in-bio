@@ -15,34 +15,7 @@ export const instagramAction = (action: 'status' | 'start' | 'sync' | 'disconnec
 
 export const updateSyncedPost = (id: string, patch: { link_url?: string; is_hidden?: boolean }) => backend.updateSyncedPost(id, patch);
 
-export interface InstagramPopupResult { status: 'ok' | 'error' | 'cancelled'; key?: string; reason?: string }
-
-export const INSTAGRAM_POPUP_FEATURES = 'width=480,height=640';
-
-/** Runs the Instagram login in a pre-opened pop-up window and waits for it to report back. */
-export function waitForInstagramPopup(popup: Window, url: string): Promise<InstagramPopupResult> {
-  return new Promise((resolve) => {
-    let done = false;
-    const finish = (r: InstagramPopupResult) => {
-      if (done) return;
-      done = true;
-      window.removeEventListener('message', onMessage);
-      clearInterval(timer);
-      try { if (!popup.closed) popup.close(); } catch { /* ignore */ }
-      resolve(r);
-    };
-    const onMessage = (e: MessageEvent) => {
-      if (e.origin !== window.location.origin || e.source !== popup) return;
-      const d = e.data as { type?: string; status?: string; key?: string; reason?: string };
-      if (d?.type !== 'instagram-connect') return;
-      if (d.status === 'ok') finish(d.key ? { status: 'ok', key: d.key } : { status: 'ok' });
-      else finish({ status: 'error', reason: d.reason || '' });
-    };
-    const timer = setInterval(() => { if (popup.closed) finish({ status: 'cancelled' }); }, 500);
-    window.addEventListener('message', onMessage);
-    popup.location.href = url;
-  });
-}
+export { waitForInstagramPopup, INSTAGRAM_POPUP_FEATURES, type InstagramPopupResult } from './instagramPopup';
 
 /** Instagram login for a page that doesn't exist yet; returns Instagram's login URL. */
 export async function newPageInstagram(action: 'configured' | 'start_new'): Promise<{ configured?: boolean; url?: string }>;
