@@ -74,7 +74,7 @@ Cloud Logging, `resource.labels.service_name="link-in-bio"` (service) or
   Instagram app 1664356071864494, or the redirect URL in Meta differs from the one above.
 - **An account cannot connect**: it is not an accepted Instagram tester while the app has no App Review.
 - **No bit.ly link in the editor**: `link-in-bio-bitly-token` is empty, or Bitly refused (see
-  `external_api.failed`). `bit.ly/<address>` taken elsewhere on Bitly: the page keeps Bitly's random link.
+  `external_api.failed`). `bit.ly/<address>` taken elsewhere on Bitly: the page gets `bit.ly/tb-<address>`, and Bitly's random link when that is taken too.
 - **Grid stopped updating**: look at the job's last execution. A token older than 60 days without a
   sync has expired; connect the account again in the editor.
 - **"Your login has expired"** in the editor: the gateway session ran out; reload.
