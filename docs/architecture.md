@@ -51,3 +51,15 @@ a read:catalog token and keeps the ones with a palette (`brand_theme_*` settings
 `settingValues`). Importing sets background, text, block and call-to-action colours the way the
 brand's website uses them, and stores the brand code in `pages.brand_code`. Staging has no Amigo,
 so the section does not show there.
+
+## Drafts and publishing
+
+The editor never writes the live page. `useEditorState` autosaves to `pages.draft`
+(`{ page, blocks }`, `api/page/save`), and `api/page` gives the editor the draft over the live rows
+plus `hasDraft` and `liveAddress`. "Publish" (`api/page/publish`) writes the draft into `pages` and
+`blocks` in one transaction, deletes blocks the draft dropped, clears `draft` and sets
+`published_at`. "Discard changes" (`api/page/discard`) only clears `draft`. A new web address
+goes live on publish too, so the editor URL and the bit.ly link follow the live address.
+
+Visitors read `public/api/page`, which returns the live rows without the `draft` column. Undo and
+redo stay in the browser and need no storage.

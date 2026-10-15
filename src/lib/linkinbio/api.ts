@@ -14,8 +14,13 @@ export const fetchPageByAddress = (address: string) => backend.getPage(address);
 /** All pages, most recently edited first, with the profile photo for the switcher. */
 export const fetchPageSummaries = () => backend.listPages();
 
-/** Saves the page settings and the full block list; returns the new updated_at. */
-export const savePageAndBlocks = (page: PageData, blocks: BlockData[], removedIds: string[]) => backend.savePage(page, blocks, removedIds);
+/** Saves the page settings and the full block list as the draft; returns the new updated_at. */
+export const saveDraft = (page: PageData, blocks: BlockData[]) => backend.saveDraft(page, blocks);
+
+/** Makes the draft live; returns published_at. */
+export const publishPage = (pageId: string) => backend.publish(pageId);
+
+export const discardDraft = (pageId: string) => backend.discardDraft(pageId);
 
 export const isAddressTaken = (address: string, exceptId?: string) => backend.isAddressTaken(address, exceptId);
 
