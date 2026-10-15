@@ -17,7 +17,7 @@ async function bitly<T>(path: string, init: RequestInit = {}): Promise<T> {
     headers: { Authorization: `Bearer ${config.bitly.token()}`, "Content-Type": "application/json", ...init.headers },
   });
   const body = (await res.json().catch(() => ({}))) as Record<string, any>;
-  if (!res.ok) throw new Error(`Bitly ${res.status}: ${body.description || body.message || "request failed"}`);
+  if (!res.ok) throw new Error(`Bitly ${res.status}: ${[body.message, body.description].filter(Boolean).join(" ") || "request failed"}`);
   return body as T;
 }
 
@@ -78,7 +78,7 @@ export async function renameShortLink(pageId: string, backHalf: string, log: Log
     await bitly("/custom_bitlinks", { method: "POST", body: JSON.stringify({ custom_bitlink: custom, bitlink_id: original }) });
   } catch (error) {
     log("external_api.failed", { provider: "bitly", step: "rename", back_half: backHalf, error: String(error) });
-    throw Object.assign(new Error(String(error)), { taken: /already|taken|exist|ALREADY_A_BITLY_LINK|409/i.test(String(error)) });
+    throw Object.assign(new Error(String(error)), { taken: /KEYWORD_UNAVAILABLE|ALREADY_A_BITLY_LINK|409/.test(String(error)) });
   }
   await db`update page_short_links set custom_link = ${custom} where page_id = ${pageId} and address = ${row!.address}`;
   log("data.write.completed", { records_written: 1, table: "page_short_links", page_id: pageId });
