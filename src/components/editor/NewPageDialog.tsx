@@ -22,6 +22,9 @@ import { TextField } from "./fields";
 const t = uiText.editor;
 const n = t.newPageDialog;
 
+/** One-time Instagram keys already turned into a page, so a second report of the same login creates nothing. */
+const usedKeys = new Set<string>();
+
 interface Props {
   open: boolean;
   onOpenChange: (o: boolean) => void;
@@ -63,6 +66,8 @@ export function NewPageDialog({ open, onOpenChange, pendingKey, connectError }: 
 
   /** After a successful Instagram login: create the page straight away from the Instagram profile (market NL). */
   const autoCreate = async (k: string) => {
+    if (usedKeys.has(k)) return;
+    usedKeys.add(k);
     setLoadingProfile(true);
     try {
       const p = await newPageInstagram("pending_profile", k);
