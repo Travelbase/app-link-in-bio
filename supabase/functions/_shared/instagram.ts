@@ -7,6 +7,9 @@ export const allowedOrigin = (origin: string) => {
   try {
     const url = new URL(origin);
     if (url.origin === 'http://localhost:8080') return true;
+    // Production (GCP) sets ALLOWED_ORIGINS, comma-separated, e.g. "https://links.travelbase.eu".
+    const extra = (Deno.env.get('ALLOWED_ORIGINS') ?? '').split(',').map((s) => s.trim().replace(/\/$/, '')).filter(Boolean);
+    if (extra.includes(url.origin)) return true;
     const id = '1ac32895-ee15-4dba-bafb-925b49045861';
     return url.protocol === 'https:' && url.hostname.includes(id) && (url.hostname.endsWith('.lovable.app') || url.hostname.endsWith('.lovableproject.com'));
   } catch { return false; }
