@@ -40,6 +40,7 @@ export const uiText = {
     retry: "Retry",
     newPage: "New page",
     switchPage: "Switch page",
+    selectChannel: "Select your channel",
     searchPages: "Search pages…",
     noPagesFound: "No pages match your search.",
     noPagesTitle: "No pages yet. Create your first one.",

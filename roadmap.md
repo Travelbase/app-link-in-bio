@@ -6,3 +6,4 @@
 - [x] Verify manual preview, callback URL, setup-missing state, and desktop/mobile links
 - [x] Cleanup before handover (unused files, import function, fixed texts, hard-coded URLs)
 - [x] Briefing for production pipeline (staging Lovable, production GCP)
+- [x] Creator home with centred phone and channel-selection arrow; selecting a channel opens its existing editor

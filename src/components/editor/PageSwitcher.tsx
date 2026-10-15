@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { publicHostPrefix } from "@/lib/linkinbio/urls";
 import { useNavigate } from "react-router-dom";
-import { ChevronDown, Plus, Search } from "lucide-react";
+import { ChevronDown, Plus, Search, LayoutList } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
@@ -10,7 +11,7 @@ import type { PageSummary } from "@/lib/linkinbio/api";
 import { uiText } from "@/lib/uiText";
 
 interface Props {
-  current: { id?: string; display_name: string; address: string; avatar_url?: string | null };
+  current?: { id?: string; display_name: string; address: string; avatar_url?: string | null };
   pages: PageSummary[];
   onNewPage: () => void;
 }
@@ -34,16 +35,18 @@ export function PageSwitcher({ current, pages, onNewPage }: Props) {
     : pages;
   return (
     <DropdownMenu onOpenChange={(open) => { if (!open) setQuery(""); }}>
-      <DropdownMenuTrigger
-        className="flex min-w-0 max-w-[280px] items-center gap-2.5 rounded-full border bg-background py-1 pl-1 pr-3 text-left hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        aria-label={uiText.editor.switchPage}
+      <DropdownMenuTrigger asChild>
+      <Button variant="outline"
+        className="flex h-auto min-w-0 max-w-[280px] items-center gap-2.5 rounded-full py-1 pl-1 pr-3 text-left"
+        aria-label={current ? uiText.editor.switchPage : uiText.editor.selectChannel}
       >
-        <PageAvatar url={current.avatar_url} name={current.display_name} />
+        {current ? <PageAvatar url={current.avatar_url} name={current.display_name} /> : <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted text-primary"><LayoutList className="h-4 w-4" /></span>}
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-semibold leading-tight">{current.display_name}</span>
-          <span className="block truncate text-xs text-muted-foreground">{publicHostPrefix()}{current.address}</span>
+          <span className="block truncate text-sm font-semibold leading-tight">{current?.display_name ?? uiText.editor.selectChannel}</span>
+          {current && <span className="block truncate text-xs text-muted-foreground">{publicHostPrefix()}{current.address}</span>}
         </span>
         <ChevronDown className="h-4 w-4 shrink-0" />
+      </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-72">
         <div className="flex items-center gap-2 border-b px-2.5 py-2">
@@ -63,7 +66,7 @@ export function PageSwitcher({ current, pages, onNewPage }: Props) {
             <p className="px-3 py-4 text-center text-sm text-muted-foreground">{uiText.editor.noPagesFound}</p>
           )}
           {filtered.map((p) => (
-            <DropdownMenuItem key={p.id} className="gap-2.5 py-2" onClick={() => p.id !== current.id && navigate(`/edit/${p.address}`)}>
+            <DropdownMenuItem key={p.id} className="gap-2.5 py-2" onClick={() => p.id !== current?.id && navigate(`/edit/${p.address}`)}>
               <PageAvatar url={p.avatar_url} name={p.display_name} size="h-8 w-8" />
               <span className="min-w-0">
                 <span className="block truncate text-sm font-medium">{p.display_name}</span>
