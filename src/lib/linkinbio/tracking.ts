@@ -1,5 +1,5 @@
 /** Fire-and-forget visit/click counting for public pages. Nothing personal is sent. */
-const ENDPOINT = `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/analytics-track`;
+const ENDPOINT = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analytics-track`;
 const EDITOR_FLAG = "tb-editor-device";
 
 /** Called by the editor: visits from a browser that uses the editor are never counted. */

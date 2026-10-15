@@ -182,7 +182,7 @@ export function NewPageDialog({ open, onOpenChange, pendingKey, connectError }: 
                   <Label htmlFor="new-handle">{t.settings.instagramHandle}</Label>
                   <div className="flex items-center rounded-md border focus-within:ring-2 focus-within:ring-ring">
                     <span className="pl-3 pr-1.5 text-sm text-muted-foreground" aria-hidden="true">@</span>
-                    <Input id="new-handle" value={handle} className="border-0 pl-0 focus-visible:ring-0" placeholder="travelbase_nl" autoComplete="off"
+                    <Input id="new-handle" value={handle} className="border-0 pl-0 focus-visible:ring-0" placeholder={uiText.handlePlaceholder} autoComplete="off"
                       onChange={(e) => onHandle(e.target.value)} />
                   </div>
                 </div>
