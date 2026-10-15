@@ -3,8 +3,11 @@ import { Link, useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
-import { BarChart3, Check, Copy, ExternalLink, Eye, LayoutList, Loader2, Palette, PencilLine, Plus, Settings, AlertCircle } from "lucide-react";
+import { BarChart3, Check, Eye, LayoutList, Loader2, Palette, PencilLine, Plus, Redo2, Settings, AlertCircle, Undo2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -18,7 +21,8 @@ import { getFeed } from "@/lib/linkinbio/instagram";
 import { backend } from "@/lib/linkinbio/backend";
 import { editPath, publicPageUrl } from "@/lib/linkinbio/urls";
 import { fetchPageByAddress, fetchPageSummaries, type PageSummary } from "@/lib/linkinbio/api";
-import type { BlockData, PageData } from "@/lib/linkinbio/types";
+import type { PageData } from "@/lib/linkinbio/types";
+import type { EditorPage } from "@/lib/linkinbio/backend";
 import { useEditorState, type SaveStatus } from "@/hooks/useEditorState";
 import { uiText } from "@/lib/uiText";
 import { cn } from "@/lib/utils";
@@ -104,19 +108,31 @@ export default function Editor() {
 }
 
 function Workspace({ initial, pages, onNewPage }: {
-  initial: { page: PageData; blocks: BlockData[] }; pages: PageSummary[]; onNewPage: () => void;
+  initial: EditorPage; pages: PageSummary[]; onNewPage: () => void;
 }) {
   const qc = useQueryClient();
-  const [savedAddress, setSavedAddress] = useState(initial.page.address);
   const [mobileView, setMobileView] = useState<"panel" | "preview">("panel");
 
-  const onSaved = useCallback((p: PageData) => {
-    setSavedAddress(p.address);
+  const onSaved = useCallback(() => { void qc.invalidateQueries({ queryKey: ["editor-pages"] }); }, [qc]);
+  // A new address only goes live on publish, so the editor URL follows it then.
+  const onPublished = useCallback((p: PageData) => {
     if (window.location.pathname !== editPath(p.address)) window.history.replaceState(window.history.state, "", editPath(p.address));
     void qc.invalidateQueries({ queryKey: ["editor-pages"] });
   }, [qc]);
 
-  const ed = useEditorState(initial, { onSaved });
+  const ed = useEditorState(initial, { onSaved, onPublished });
+  const savedAddress = ed.liveAddress;
+  const { undo, redo } = ed;
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey) || e.altKey) return;
+      const key = e.key.toLowerCase();
+      if (key === "z") { e.preventDefault(); if (e.shiftKey) redo(); else undo(); }
+      else if (key === "y" && e.ctrlKey) { e.preventDefault(); redo(); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [undo, redo]);
   const feed = useQuery({ queryKey: ["instagram-feed", initial.page.id], queryFn: () => getFeed(initial.page.id ?? "") });
   const profile = ed.blocks.find((b) => b.type === "profile");
   const avatar = profile?.type === "profile" ? profile.content.avatar_url : null;
@@ -129,7 +145,14 @@ function Workspace({ initial, pages, onNewPage }: {
     <div className="flex h-[100dvh] flex-col overflow-hidden bg-background text-foreground">
       <header className="flex items-center justify-between gap-3 border-b px-3 py-2 sm:px-4">
         <PageSwitcher current={{ ...ed.page, avatar_url: avatar }} pages={pages} onNewPage={onNewPage} />
-        <SaveIndicator status={ed.status} message={ed.errorMessage} onRetry={ed.retry} />
+        <div className="flex shrink-0 items-center gap-2">
+          <SaveIndicator status={ed.status} message={ed.errorMessage} onRetry={ed.retry} hasDraft={ed.hasDraft} />
+          <div className="flex">
+            <Button variant="ghost" size="icon" className="h-8 w-8" disabled={!ed.canUndo} onClick={undo} title={`${t.undo} (⌘Z)`} aria-label={t.undo}><Undo2 className="h-4 w-4" /></Button>
+            <Button variant="ghost" size="icon" className="h-8 w-8" disabled={!ed.canRedo} onClick={redo} title={`${t.redo} (⇧⌘Z)`} aria-label={t.redo}><Redo2 className="h-4 w-4" /></Button>
+          </div>
+          <PublishControls ed={ed} />
+        </div>
       </header>
 
       <div className="flex flex-wrap items-center gap-2 border-b px-3 py-2 sm:px-4">
@@ -146,7 +169,7 @@ function Workspace({ initial, pages, onNewPage }: {
             <PhoneFrame>
               <PageRenderer page={ed.page} blocks={ed.blocks} fullScreen={false} preview syncedPosts={feed.data} />
             </PhoneFrame>
-            <LastUpdated at={ed.lastSaved} />
+            <PublishedAgo at={ed.publishedAt} />
           </div>
         </div>
 
@@ -167,7 +190,7 @@ function Workspace({ initial, pages, onNewPage }: {
             </TabsList>
             <div className="min-h-0 flex-1 overflow-y-auto p-4">
               <TabsContent value="blocks" className="mt-0"><BlocksTab blocks={ed.blocks} setBlocks={ed.setBlocks} pageId={ed.page.id} /></TabsContent>
-              <TabsContent value="design" className="mt-0"><DesignTab page={ed.page} update={ed.updatePage} /></TabsContent>
+              <TabsContent value="design" className="mt-0"><DesignTab page={ed.page} update={ed.updatePage} onUndo={undo} /></TabsContent>
               <TabsContent value="analytics" className="mt-0"><AnalyticsTab pageId={ed.page.id} shortUrl={short.data ?? null} /></TabsContent>
               <TabsContent value="settings" className="mt-0"><SettingsTab page={ed.page} savedAddress={savedAddress} update={ed.updatePage} blocks={ed.blocks} setBlocks={ed.setBlocks} /></TabsContent>
             </div>
@@ -188,27 +211,57 @@ function PhoneFrame({ children }: { children: React.ReactNode }) {
   );
 }
 
-function LastUpdated({ at }: { at?: string }) {
+function PublishedAgo({ at }: { at?: string }) {
   const [, tick] = useState(0);
   useEffect(() => { const id = window.setInterval(() => tick((n) => n + 1), 30000); return () => window.clearInterval(id); }, []);
   if (!at) return null;
-  return <p className="text-xs text-muted-foreground">{t.lastUpdated(formatDistanceToNow(new Date(at), { addSuffix: true }))}</p>;
+  return <p className="text-xs text-muted-foreground">{t.publishedAgo(formatDistanceToNow(new Date(at), { addSuffix: true }))}</p>;
 }
 
-function SaveIndicator({ status, message, onRetry }: { status: SaveStatus; message: string | null; onRetry: () => void }) {
-  if (status === "idle") return null;
+function SaveIndicator({ status, message, onRetry, hasDraft }: { status: SaveStatus; message: string | null; onRetry: () => void; hasDraft: boolean }) {
   return (
     <div className="flex shrink-0 items-center gap-1.5 text-xs" role="status" aria-live="polite">
-      {status === "saving" && <><Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" /><span className="text-muted-foreground">{t.saving}</span></>}
-      {status === "saved" && <><Check className="h-3.5 w-3.5 text-primary" /><span className="text-muted-foreground">{t.saved}</span></>}
+      {status === "saving" && <><Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" /><span className="hidden text-muted-foreground sm:inline">{t.saving}</span></>}
+      {status !== "saving" && status !== "error" && hasDraft && (
+        <><span className="h-2 w-2 rounded-full bg-amber-500" /><span className="hidden text-muted-foreground sm:inline">{t.unpublished}</span></>
+      )}
       {status === "error" && (
         <>
           <AlertCircle className="h-3.5 w-3.5 text-destructive" />
-          <span className="text-destructive" title={message ?? undefined}>{t.saveError}{message === t.address.taken ? ` — ${message}` : ""}</span>
+          <span className="text-destructive" title={message ?? undefined}>{t.saveError}{message === t.address.taken ? `: ${message}` : ""}</span>
           <Button size="sm" variant="outline" className="h-7 px-2 text-xs" onClick={onRetry}>{t.retry}</Button>
         </>
       )}
     </div>
+  );
+}
+
+function PublishControls({ ed }: { ed: ReturnType<typeof useEditorState> }) {
+  const run = (action: () => Promise<void>, done: string) =>
+    action().then(() => toast.success(done), (e: Error) => toast.error(e.message));
+  if (!ed.hasDraft) {
+    return <Button size="sm" variant="outline" disabled><Check className="h-3.5 w-3.5" />{t.published}</Button>;
+  }
+  return (
+    <>
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <Button size="sm" variant="ghost" className="hidden sm:inline-flex" disabled={!!ed.busy}>{t.discard}</Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogTitle>{t.discard}</AlertDialogTitle>
+          <AlertDialogDescription>{t.discardConfirm}</AlertDialogDescription>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{uiText.cancel}</AlertDialogCancel>
+            <AlertDialogAction onClick={() => void run(ed.discard, t.discarded)}>{t.discard}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <Button size="sm" disabled={!!ed.busy} onClick={() => void run(ed.publish, t.publishedToast)}>
+        {ed.busy === "publishing" && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+        {ed.busy === "publishing" ? t.publishing : t.publish}
+      </Button>
+    </>
   );
 }
 

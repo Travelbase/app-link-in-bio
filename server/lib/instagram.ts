@@ -130,8 +130,14 @@ export async function syncAvatar(pageId: string, pictureUrl: string) {
     select id, content from blocks where page_id = ${pageId} and type = 'profile' limit 1`;
   if (!block || block.content?.avatar_custom) return;
   const url = await copyImage(pictureUrl, `instagram/${pageId}/avatar`);
-  const content = { ...block.content, avatar_url: `${url}?v=${Date.now()}`, avatar_custom: false };
-  await sql()`update blocks set content = ${sql().json(content as never)} where id = ${block.id}`;
+  const avatar = { avatar_url: `${url}?v=${Date.now()}`, avatar_custom: false };
+  await sql()`update blocks set content = ${sql().json({ ...block.content, ...avatar } as never)} where id = ${block.id}`;
+  // Keep an open draft in step, so publishing it does not bring the old photo back.
+  const [page] = await sql()<{ draft: { blocks: { type: string; content: Record<string, unknown> }[] } | null }[]>`
+    select draft from pages where id = ${pageId}`;
+  if (!page?.draft) return;
+  const blocks = page.draft.blocks.map((b) => (b.type === "profile" && !b.content?.avatar_custom ? { ...b, content: { ...b.content, ...avatar } } : b));
+  await sql()`update pages set draft = ${sql().json({ ...page.draft, blocks } as never)} where id = ${pageId} and draft is not null`;
 }
 
 /** Pulls the latest 24 posts into instagram_posts, keeping links and hidden flags the team set. */

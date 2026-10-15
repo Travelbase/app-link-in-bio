@@ -62,7 +62,14 @@ export async function syncAvatar(pageId: string, pictureUrl: string) {
   const { data: block } = await client.from('blocks').select('id,content').eq('page_id', pageId).eq('type', 'profile').maybeSingle();
   if (!block || (block.content as Record<string, unknown>)?.avatar_custom) return;
   const url = await copyImage(pictureUrl, `instagram/${pageId}/avatar`);
-  await client.from('blocks').update({ content: { ...(block.content as Record<string, unknown>), avatar_url: `${url}?v=${Date.now()}`, avatar_custom: false } }).eq('id', block.id);
+  const avatar = { avatar_url: `${url}?v=${Date.now()}`, avatar_custom: false };
+  await client.from('blocks').update({ content: { ...(block.content as Record<string, unknown>), ...avatar } }).eq('id', block.id);
+  // Keep an open draft in step, so publishing it does not bring the old photo back.
+  const { data: page } = await client.from('pages').select('draft').eq('id', pageId).maybeSingle();
+  const draft = page?.draft as { blocks: { type: string; content: Record<string, unknown> }[] } | null;
+  if (!draft) return;
+  const blocks = draft.blocks.map((b) => (b.type === 'profile' && !b.content?.avatar_custom ? { ...b, content: { ...b.content, ...avatar } } : b));
+  await client.from('pages').update({ draft: { ...draft, blocks } }).eq('id', pageId).not('draft', 'is', null);
 }
 
 export async function syncPage(pageId: string) {

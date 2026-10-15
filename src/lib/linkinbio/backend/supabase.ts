@@ -1,3 +1,4 @@
+import { uiText } from "@/lib/uiText";
 import type { Json } from "@/integrations/supabase/types";
 import type { BlockData, Market, PageData } from "../types";
 import type { LinkInBioBackend, SyncedPost } from "./types";
@@ -21,15 +22,25 @@ async function instagramConnect(body: Record<string, unknown>) {
   return data;
 }
 
-async function getPage(address: string) {
+type Draft = { page: Record<string, unknown>; blocks: BlockData[] };
+
+/** The live page and blocks: what visitors see. Never the draft. */
+async function livePage(address: string) {
   const supabase = await db();
-  const { data: page, error } = await supabase.from("pages").select("*").eq("address", address.toLowerCase()).maybeSingle();
+  const { data: row, error } = await supabase.from("pages").select("*").eq("address", address.toLowerCase()).maybeSingle();
   if (error) throw error;
-  if (!page) return null;
+  if (!row) return null;
+  const { draft, ...page } = row;
   const { data: blocks, error: bErr } = await supabase.from("blocks").select("*").eq("page_id", page.id).order("position");
   if (bErr) throw bErr;
-  return { page: page as unknown as PageData, blocks: (blocks ?? []) as unknown as BlockData[] };
+  return { page: page as unknown as PageData, blocks: (blocks ?? []) as unknown as BlockData[], draft: draft as unknown as Draft | null };
 }
+
+/** Page columns the editor may write (brand_code is production only: staging has no Amigo, and no column for it). */
+const pageFields = (page: PageData) => {
+  const { id, updated_at, created_at, brand_code, published_at, draft, ...fields } = page as PageData & { created_at?: string; draft?: unknown };
+  return fields;
+};
 
 async function instagramFeed(pageId: string): Promise<SyncedPost[] | null> {
   const status = await instagramConnect({ action: "status", pageId });
@@ -43,10 +54,19 @@ async function instagramFeed(pageId: string): Promise<SyncedPost[] | null> {
 const productionOnly = async (): Promise<never> => { throw new Error("The image library exists in production only."); };
 
 export const supabaseBackend: LinkInBioBackend = {
-  publicPage: getPage,
+  async publicPage(address) {
+    const live = await livePage(address);
+    return live && { page: live.page, blocks: live.blocks };
+  },
   publicFeed: instagramFeed,
 
-  getPage,
+  async getPage(address) {
+    const live = await livePage(address);
+    if (!live) return null;
+    const liveAddress = live.page.address;
+    if (!live.draft) return { page: live.page, blocks: live.blocks, hasDraft: false, liveAddress };
+    return { page: { ...live.page, ...live.draft.page, id: live.page.id } as PageData, blocks: live.draft.blocks, hasDraft: true, liveAddress };
+  },
 
   async listPages() {
     const supabase = await db();
@@ -60,25 +80,43 @@ export const supabaseBackend: LinkInBioBackend = {
     return (data ?? []).map((p) => ({ ...p, avatar_url: avatars.get(p.id) ?? null }));
   },
 
-  async savePage(page, blocks, removedIds) {
+  async saveDraft(page, blocks) {
     const supabase = await db();
-    // brand_code is production only: staging has no Amigo, and no column for it.
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id, updated_at, created_at, brand_code, ...fields } = page as PageData & { created_at?: string };
-    const { data, error } = await supabase.from("pages").update(fields).eq("id", id!).select("updated_at").single();
+    const fields = pageFields(page);
+    const { data: other } = await supabase.from("pages").select("id").eq("address", fields.address).neq("id", page.id!).limit(1);
+    if (other?.length) throw Object.assign(new Error(uiText.editor.address.taken), { code: "address_taken" });
+    const draft: Draft = { page: fields as Record<string, unknown>, blocks: blocks.map((b, i) => ({ id: b.id, type: b.type, position: i, is_visible: b.is_visible, content: b.content }) as BlockData) };
+    const { data, error } = await supabase.from("pages").update({ draft: draft as unknown as Json }).eq("id", page.id!).select("updated_at").single();
     if (error) throw error;
-    if (blocks.length) {
-      const rows = blocks.map((b, i) => ({
-        id: b.id!, page_id: id!, type: b.type, position: i, is_visible: b.is_visible, content: b.content as unknown as Json,
-      }));
+    return data.updated_at;
+  },
+
+  // Staging only, so no transaction: blocks first, then the page, which clears the draft last.
+  async publish(id) {
+    const supabase = await db();
+    const { data: row, error } = await supabase.from("pages").select("draft,published_at").eq("id", id).single();
+    if (error) throw error;
+    const draft = row.draft as unknown as Draft | null;
+    if (!draft) return row.published_at;
+    const rows = draft.blocks.map((b, i) => ({ id: b.id!, page_id: id, type: b.type, position: i, is_visible: b.is_visible, content: b.content as unknown as Json }));
+    if (rows.length) {
       const { error: bErr } = await supabase.from("blocks").upsert(rows);
       if (bErr) throw bErr;
     }
-    if (removedIds.length) {
-      const { error: dErr } = await supabase.from("blocks").delete().in("id", removedIds);
-      if (dErr) throw dErr;
-    }
-    return data.updated_at;
+    let del = supabase.from("blocks").delete().eq("page_id", id);
+    if (rows.length) del = del.not("id", "in", `(${rows.map((r) => r.id).join(",")})`);
+    const { error: dErr } = await del;
+    if (dErr) throw dErr;
+    const publishedAt = new Date().toISOString();
+    const { error: pErr } = await supabase.from("pages").update({ ...pageFields(draft.page as unknown as PageData), draft: null, published_at: publishedAt }).eq("id", id);
+    if (pErr) throw pErr;
+    return publishedAt;
+  },
+
+  async discardDraft(id) {
+    const supabase = await db();
+    const { error } = await supabase.from("pages").update({ draft: null }).eq("id", id);
+    if (error) throw error;
   },
 
   async isAddressTaken(address, exceptId) {

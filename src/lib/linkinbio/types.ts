@@ -30,6 +30,8 @@ export interface PageData extends PageDesign {
   /** The Amigo brand the colours came from (Core brand code). */
   brand_code?: string | null;
   updated_at?: string;
+  /** When the live version was last published. */
+  published_at?: string;
 }
 
 export type SocialPlatform =

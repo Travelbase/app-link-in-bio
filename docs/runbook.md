@@ -81,3 +81,4 @@ Cloud Logging, `resource.labels.service_name="link-in-bio"` (service) or
 - **Image picker shows only "Computer"**: the Core token lacks `use:media-picker`, or Core has that source switched off (`api/picker/sources`). Scopes are fixed once a token exists: issue a new one with both scopes and add it as a new secret version.
 - **No "Brand" section in Design**: `link-in-bio-core-api-token` is empty. "Could not reach Amigo": the token was revoked or lacks `read:catalog` (see `external_api.failed`, provider `core-api`).
 - **"Your login has expired"** in the editor: the gateway session ran out; reload.
+- **An edit does not show on the public page**: it is still a draft. The editor shows "Unpublished changes"; press Publish. A stuck draft can be thrown away with "Discard changes", or in SQL: `update pages set draft = null where address = '…'`.
