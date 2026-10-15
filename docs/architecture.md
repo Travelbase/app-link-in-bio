@@ -38,7 +38,7 @@ browser ── supabase.ts ──▶ Lovable Cloud        browser ── http.ts
 ## Bitly
 
 The editor asks `api/short-link` when a page opens; the server creates
-`bit.ly/<address>` (or Bitly's random link when that is taken) for
+`bit.ly/<address>` (or `bit.ly/tb-<address>`, or Bitly's random link) for
 `…/public/<address>` and keeps it in `page_short_links`. A renamed page gets a new link; the old
 one keeps pointing at the old address. The Analytics tab reads clicks, countries and referrers
 from Bitly through `api/link-stats`.

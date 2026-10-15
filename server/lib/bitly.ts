@@ -29,17 +29,19 @@ export async function shorten(longUrl: string, backHalf: string, log: Log): Prom
     method: "POST",
     body: JSON.stringify({ long_url: longUrl, domain, ...(group ? { group_guid: group } : {}) }),
   });
-  try {
-    const custom = await bitly<{ custom_bitlink: string }>("/custom_bitlinks", {
-      method: "POST",
-      body: JSON.stringify({ custom_bitlink: `${domain}/${backHalf}`, bitlink_id: link.id }),
-    });
-    return custom.custom_bitlink.replace(/^https?:\/\//, "");
-  } catch (error) {
-    // Taken by someone else on bit.ly, or the plan has no custom back-halves left.
-    log("external_api.failed", { provider: "bitly", step: "custom_bitlink", back_half: backHalf, error: String(error) });
-    return link.id;
+  // bit.ly is shared by everyone, so common names are taken; then tb-<address>, then Bitly's random link.
+  for (const half of [backHalf, `tb-${backHalf}`]) {
+    try {
+      const custom = await bitly<{ custom_bitlink: string }>("/custom_bitlinks", {
+        method: "POST",
+        body: JSON.stringify({ custom_bitlink: `${domain}/${half}`, bitlink_id: link.id }),
+      });
+      return custom.custom_bitlink.replace(/^https?:\/\//, "");
+    } catch (error) {
+      log("external_api.failed", { provider: "bitly", step: "custom_bitlink", back_half: half, error: String(error) });
+    }
   }
+  return link.id;
 }
 
 /** The page's short link for its current address, created on first ask. Null without a Bitly token. */
@@ -61,7 +63,9 @@ type Metric = { value: string; clicks: number };
 /** Daily visits, countries and referrers between two dates (YYYY-MM-DD, inclusive). */
 export async function stats(bitlink: string, from: string, to: string, log: Log) {
   const units = Math.round((Date.parse(to) - Date.parse(from)) / 86400000) + 1;
-  const q = `unit=day&units=${units}&unit_reference=${encodeURIComponent(`${to}T23:59:59+0000`)}`;
+  // Bitly refuses a reference in the future; without one it counts back from now.
+  const end = `${to}T23:59:59+0000`;
+  const q = `unit=day&units=${units}${Date.parse(end) < Date.now() ? `&unit_reference=${encodeURIComponent(end)}` : ""}`;
   const id = encodeURIComponent(bitlink);
   // Countries and referrers depend on the Bitly plan; the visit count does not.
   const optional = <T>(p: Promise<T>, fallback: T, step: string) =>
