@@ -1,6 +1,6 @@
 import { uiText } from "@/lib/uiText";
 import { APP_BASE } from "../urls";
-import type { LinkInBioBackend, SyncedPost } from "./types";
+import type { LinkInBioBackend, SharedDrive, SyncedPost } from "./types";
 
 /**
  * Production (GCP): the app's own API in the same container, under /a/link-in-bio/api
@@ -57,6 +57,28 @@ export const httpBackend: LinkInBioBackend = {
       xhr.onerror = () => reject(new Error("Network error"));
       xhr.send(file);
     });
+  },
+
+  imageSources: () => api("GET", "picker/sources"),
+  libraryPickerUrl: async () => (await api<{ pickerUrl: string }>("POST", "picker/library", {})).pickerUrl,
+  driveSharedDrives: async () => (await api<{ drives: SharedDrive[] }>("POST", "picker/drive/drives", {})).drives,
+  driveList: (scope, term, pageToken) => api("POST", "picker/drive/list", { scope, term: term || null, pageToken }),
+  driveThumbnailUrl: (link) => `${APP_BASE}api/picker/drive/thumbnail?link=${encodeURIComponent(link)}`,
+  unsplashSearch: (q, page) => api("GET", "picker/unsplash", { q, page: String(page) }),
+  async pickedImage(pick) {
+    const res = await fetch(`${APP_BASE}api/picker/image`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify(pick),
+    });
+    if (res.status === 401) throw new Error(uiText.sessionExpired);
+    const type = res.headers.get("content-type") ?? "";
+    if (!res.ok || type.includes("json") || type.includes("html")) {
+      const body = (await res.json().catch(() => null)) as { error?: { message: string } } | null;
+      throw new Error(body?.error?.message ?? `HTTP ${res.status}`);
+    }
+    return res.blob();
   },
 
   instagramFeed: async (pageId) => (await api<{ posts: SyncedPost[] | null }>("GET", "instagram/feed", { pageId })).posts,

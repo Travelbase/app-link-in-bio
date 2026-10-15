@@ -30,6 +30,7 @@ browser ── supabase.ts ──▶ Lovable Cloud        browser ── http.ts
 | `` , `edit/<address>`                  | staff | the editor (SPA)                             |
 | `api/*`                                | staff | editor API, docs at `api/docs`               |
 | `api/images`                           | staff | image upload (body is the file)              |
+| `api/picker/*`                         | staff | image picker: Media Search, Drive, Unsplash  |
 | `public/<address>`                     | none  | public page (SPA)                            |
 | `public/assets/*`                      | none  | the SPA's JS and CSS                         |
 | `public/api/page`, `public/api/feed`   | none  | what a public page reads, docs at `public/api/docs` |
@@ -51,3 +52,13 @@ a read:catalog token and keeps the ones with a palette (`brand_theme_*` settings
 `settingValues`). Importing sets background, text, block and call-to-action colours the way the
 brand's website uses them, and stores the brand code in `pages.brand_code`. Staging has no Amigo,
 so the section does not show there.
+
+## Image picker
+
+Every image field opens the picker (`ImagePickerDialog`), the same sources as Amigo's: Travelbase
+Media Search (its own picker in an iframe), the shared Google Drives, the computer and Unsplash.
+The server reaches the first, second and fourth through Core's `_actions` (`server/lib/picker.ts`)
+with the Core token, which needs `use:media-picker` besides `read:catalog`: the Media Search key,
+the Drive service account and the Unsplash key stay in Core. A pick comes back as bytes
+(`api/picker/image`); the browser scales it to 2048 px / 5 MB and uploads it through `api/images`,
+so every image lands in the bucket. Staging has no Amigo: the picker shows only the computer there.

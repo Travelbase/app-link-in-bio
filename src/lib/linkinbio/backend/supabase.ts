@@ -40,6 +40,8 @@ async function instagramFeed(pageId: string): Promise<SyncedPost[] | null> {
   return (data ?? []) as SyncedPost[];
 }
 
+const productionOnly = async (): Promise<never> => { throw new Error("The image library exists in production only."); };
+
 export const supabaseBackend: LinkInBioBackend = {
   publicPage: getPage,
   publicFeed: instagramFeed,
@@ -152,6 +154,15 @@ export const supabaseBackend: LinkInBioBackend = {
       xhr.send(file);
     });
   },
+
+  // Staging has no Amigo: the picker offers upload from the computer only.
+  imageSources: async () => ({ library: false, drive: false, unsplash: false }),
+  libraryPickerUrl: productionOnly,
+  driveSharedDrives: productionOnly,
+  driveList: productionOnly,
+  driveThumbnailUrl: () => "",
+  unsplashSearch: productionOnly,
+  pickedImage: productionOnly,
 
   instagramFeed,
 

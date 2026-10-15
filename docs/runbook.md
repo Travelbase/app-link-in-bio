@@ -43,7 +43,7 @@ Lovable's project settings point its GitHub sync at `lovable`. Never at `main`.
 | `link-in-bio-database-url`         | `postgres://link_in_bio:…@/link_in_bio?host=/cloudsql/travelbase-apps:europe-west1:atlas-db` |
 | `link-in-bio-instagram-app-secret` | App secret of Instagram app Travelbase-IG (1664356071864494), Meta app Travelbase |
 | `link-in-bio-bitly-token`          | Bitly access token (bitly.com → Settings → API)                      |
-| `link-in-bio-core-api-token`       | Core ApiToken with `read:catalog` (Amigo → API Tokens), for brand colours |
+| `link-in-bio-core-api-token`       | Core ApiToken with `read:catalog` and `use:media-picker` (Amigo → API Tokens), for brand colours and the image picker |
 
 `INSTAGRAM_APP_ID`, `IMAGE_BUCKET` and `PUBLIC_URL` are plain env vars in `.github/workflows/deploy.yml`.
 
@@ -78,5 +78,6 @@ Cloud Logging, `resource.labels.service_name="link-in-bio"` (service) or
   `external_api.failed`). `bit.ly/<address>` taken elsewhere on Bitly: the page gets `bit.ly/tb-<address>`, and Bitly's random link when that is taken too.
 - **Grid stopped updating**: look at the job's last execution. A token older than 60 days without a
   sync has expired; connect the account again in the editor.
+- **Image picker shows only "Computer"**: the Core token lacks `use:media-picker`, or Core has that source switched off (`api/picker/sources`). Scopes are fixed once a token exists: issue a new one with both scopes and add it as a new secret version.
 - **No "Brand" section in Design**: `link-in-bio-core-api-token` is empty. "Could not reach Amigo": the token was revoked or lacks `read:catalog` (see `external_api.failed`, provider `core-api`).
 - **"Your login has expired"** in the editor: the gateway session ran out; reload.
