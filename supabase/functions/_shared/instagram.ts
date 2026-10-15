@@ -11,6 +11,7 @@ export const allowedOrigin = (origin: string) => {
     const extra = (Deno.env.get('ALLOWED_ORIGINS') ?? '').split(',').map((s) => s.trim().replace(/\/$/, '')).filter(Boolean);
     if (extra.includes(url.origin)) return true;
     const id = '1ac32895-ee15-4dba-bafb-925b49045861';
+    if (url.hostname === 'app-link-in-bio.lovable.app') return true; // published app
     return url.protocol === 'https:' && url.hostname.includes(id) && (url.hostname.endsWith('.lovable.app') || url.hostname.endsWith('.lovableproject.com'));
   } catch { return false; }
 };
