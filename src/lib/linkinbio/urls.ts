@@ -6,8 +6,10 @@
  */
 const base = (import.meta.env.VITE_APP_BASE as string | undefined) ?? "/";
 
-/** Router basename and prefix for app paths, always ending in a slash. */
+/** Prefix for app paths, always ending in a slash. */
 export const APP_BASE = base.endsWith("/") ? base : `${base}/`;
+/** Router basename: without the trailing slash, so /a/link-in-bio opens the editor as /a/link-in-bio/ does. */
+export const routerBasename = (appBase: string) => appBase.replace(/(.)\/$/, "$1");
 /** Path segment in front of a public page's address. */
 export const PUBLIC_SEGMENT = base === "/" ? "" : "public/";
 

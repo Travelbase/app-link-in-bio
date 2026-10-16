@@ -1,5 +1,5 @@
 import { Toaster } from "@/components/ui/toaster";
-import { APP_BASE } from "./lib/linkinbio/urls";
+import { APP_BASE, routerBasename } from "./lib/linkinbio/urls";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -17,7 +17,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter basename={APP_BASE}>
+      <BrowserRouter basename={routerBasename(APP_BASE)}>
         <Routes>
           <Route path="/" element={<Editor />} />
           <Route path="/edit/:address" element={<Editor />} />
