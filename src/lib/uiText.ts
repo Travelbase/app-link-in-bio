@@ -3,6 +3,7 @@
 export const uiText = {
   instagramCallbackBusy: "Finishing the Instagram login…",
   instagramRefused: "Instagram refused the connection. Check that the Instagram app secret in project Secrets matches the Meta app (Instagram → API setup with Instagram login), then try again.",
+  instagramNotTester: "This Instagram account isn't allowed to connect yet. While the Meta app is in Development, the account must be added as an Instagram tester (Meta app → App roles → Roles) and accept the invite on instagram.com → Settings → Apps and websites. Then try again.",
   dataDeletionTitle: "Your Instagram data has been deleted",
   dataDeletionBody: "We removed the Instagram connection and all posts we had copied from your account.",
   dataDeletionCode: "Confirmation code:",
@@ -52,6 +53,7 @@ export const uiText = {
     retry: "Retry",
     newPage: "New page",
     switchPage: "Switch page",
+    selectChannel: "Select your channel",
     searchPages: "Search pages…",
     noPagesFound: "No pages match your search.",
     noPagesTitle: "No pages yet. Create your first one.",

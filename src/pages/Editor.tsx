@@ -55,10 +55,10 @@ export default function Editor() {
   });
   useEffect(() => { if (pending) setNewOpen(true); }, [pending]);
   const pagesQ = useQuery({ queryKey: ["editor-pages"], queryFn: fetchPageSummaries, refetchOnWindowFocus: false });
-  const target = address ?? pagesQ.data?.[0]?.address;
+  const target = address;
   const pageQ = useQuery({
     queryKey: ["editor-page", target],
-    queryFn: () => fetchPageByAddress(target!),
+    queryFn: () => target ? fetchPageByAddress(target) : Promise.resolve(null),
     enabled: !!target,
     gcTime: 0,
     staleTime: Infinity,
@@ -78,13 +78,26 @@ export default function Editor() {
     );
   }
 
-  if (pagesQ.isSuccess && pagesQ.data.length === 0 && !address) {
+  if (pagesQ.isSuccess && !address) {
     return (
-      <Centered>
-        <p className="font-medium">{t.noPagesTitle}</p>
-        <Button onClick={() => setNewOpen(true)}><Plus className="h-4 w-4" /> {t.newPage}</Button>
+      <div className="flex h-[100dvh] flex-col overflow-hidden bg-background text-foreground">
+        <header className="relative z-10 flex items-center gap-3 border-b px-3 py-2 sm:px-4">
+          <PageSwitcher pages={pagesQ.data} onNewPage={() => setNewOpen(true)} />
+        </header>
+        <main className="relative flex min-h-0 flex-1 items-center justify-center bg-muted/50 px-4 py-6">
+          <svg aria-hidden="true" viewBox="0 0 1000 1000" preserveAspectRatio="none" className="pointer-events-none absolute inset-0 h-full w-full overflow-visible text-primary">
+            <defs><marker id="channel-arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 1 1 L 8 5 L 1 9" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></marker></defs>
+            <path d="M 470 300 C 420 170, 150 200, 115 -8" fill="none" stroke="currentColor" strokeWidth="2" vectorEffect="non-scaling-stroke" strokeLinecap="round" markerEnd="url(#channel-arrow)" />
+          </svg>
+          <PhoneFrame>
+            <div className="flex h-full flex-col items-center justify-center gap-4 bg-background px-6 text-center">
+              <LayoutList className="h-8 w-8 text-primary" aria-hidden="true" />
+              <p className="text-xl font-semibold">{t.selectChannel}</p>
+            </div>
+          </PhoneFrame>
+        </main>
         {dialog}
-      </Centered>
+      </div>
     );
   }
 
@@ -203,7 +216,7 @@ function Workspace({ initial, pages, onNewPage }: {
 
 function PhoneFrame({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative h-[660px] max-h-[calc(100dvh-220px)] min-h-[480px] w-[330px] max-w-full shrink-0 overflow-hidden rounded-[2.5rem] border-[10px] border-zinc-900 bg-zinc-900 shadow-xl">
+    <div className="relative h-[660px] max-h-[calc(100dvh-220px)] min-h-[320px] w-[330px] max-w-full shrink-0 overflow-hidden rounded-[2.5rem] border-[10px] border-foreground bg-foreground shadow-xl">
       <div className="h-full w-full overflow-y-auto overflow-x-hidden rounded-[1.8rem] bg-background" style={{ scrollbarWidth: "none" }}>
         {children}
       </div>
