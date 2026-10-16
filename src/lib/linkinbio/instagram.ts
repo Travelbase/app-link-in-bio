@@ -4,6 +4,8 @@ import { uiText } from '@/lib/uiText';
 /** Turns Instagram's technical refusal into plain language; keeps the original as detail. */
 export function friendlyConnectError(reason: string): { message: string; detail?: string } {
   if (/verification code|client secret|client_secret/i.test(reason)) return { message: uiText.instagramRefused, detail: reason };
+  // Meta answers this when the account has no role on an app that is still in Development.
+  if (/unsupported request - method type|insufficient developer role|ontwikkelaarsrol/i.test(reason)) return { message: uiText.instagramNotTester, detail: reason };
   return { message: reason };
 }
 
