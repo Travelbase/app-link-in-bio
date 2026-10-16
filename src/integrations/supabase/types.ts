@@ -450,6 +450,7 @@ export type Database = {
           item_label: string
         }[]
       }
+      is_travelbase_staff: { Args: never; Returns: boolean }
       run_instagram_daily: { Args: never; Returns: undefined }
     }
     Enums: {

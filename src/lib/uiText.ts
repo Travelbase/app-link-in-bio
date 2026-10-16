@@ -22,6 +22,15 @@ export const uiText = {
   reload: "Reload",
   cancel: "Cancel",
 
+  signIn: {
+    title: "Link in bio creator",
+    body: "Sign in with your Travelbase Google account to edit pages.",
+    google: "Sign in with Google",
+    wrongDomain: "Only @travelbase.eu accounts can sign in. You were signed out.",
+    failed: "Sign-in failed. Please try again.",
+    signOut: "Sign out",
+  },
+
   editor: {
     tabs: { blocks: "Blocks", design: "Design", analytics: "Analytics", settings: "Settings" },
     yourLink: "Your link:",
