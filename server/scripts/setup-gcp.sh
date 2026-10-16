@@ -57,7 +57,7 @@ cat <<MSG
 Left to do by hand:
   echo -n '<Instagram app secret>' | gcloud secrets versions add link-in-bio-instagram-app-secret --project $PROJECT --data-file=-
   echo -n '<Bitly access token>'   | gcloud secrets versions add link-in-bio-bitly-token --project $PROJECT --data-file=-
-  (Instagram: Meta app Travelbase → Instagram → API setup with Instagram login → app secret of Travelbase-IG.
+  (Instagram: Meta app Travelbase Link in Bio → Use cases → Manage messaging & content on Instagram → API setup with Instagram login → Instagram app secret.
    Bitly: bitly.com → Settings → API → Generate token.)
 Then push to main, and run scripts/setup-scheduler.sh after the first deploy.
 MSG

@@ -41,7 +41,7 @@ Lovable's project settings point its GitHub sync at `lovable`. Never at `main`.
 | Secret                             | What                                                                 |
 |------------------------------------|----------------------------------------------------------------------|
 | `link-in-bio-database-url`         | `postgres://link_in_bio:…@/link_in_bio?host=/cloudsql/travelbase-apps:europe-west1:atlas-db` |
-| `link-in-bio-instagram-app-secret` | App secret of Instagram app Travelbase-IG (1664356071864494), Meta app Travelbase |
+| `link-in-bio-instagram-app-secret` | App secret of Instagram app 1431824102220982, Meta app Travelbase Link in Bio (2820640911649153)|
 | `link-in-bio-bitly-token`          | Bitly access token (bitly.com → Settings → API)                      |
 | `link-in-bio-core-api-token`       | Core ApiToken with `read:catalog` and `use:media-picker` (Amigo → API Tokens), for brand colours and the image picker |
 
@@ -49,7 +49,7 @@ Lovable's project settings point its GitHub sync at `lovable`. Never at `main`.
 
 ## Meta app
 
-Instagram → API setup with Instagram login, in the Meta app "Travelbase":
+Instagram → API setup with Instagram login, in the Meta app "Travelbase Link in Bio" (2820640911649153), use case "Manage messaging & content on Instagram":
 
 | Setting            | URL                                                                         |
 |--------------------|-----------------------------------------------------------------------------|
@@ -72,7 +72,7 @@ Cloud Logging, `resource.labels.service_name="link-in-bio"` (service) or
   their assets (`/public/assets/…`) and `/public/api/…` must all be there.
 - **"The Instagram app has not been set up yet"**: `link-in-bio-instagram-app-secret` has no version.
 - **"Instagram refused the connection" / invalid verification code**: the secret does not belong to
-  Instagram app 1664356071864494, or the redirect URL in Meta differs from the one above.
+  Instagram app 1431824102220982, or the redirect URL in Meta differs from the one above.
 - **An account cannot connect**: it is not an accepted Instagram tester while the app has no App Review.
 - **No bit.ly link in the editor**: `link-in-bio-bitly-token` is empty, or Bitly refused (see
   `external_api.failed`). `bit.ly/<address>` taken elsewhere on Bitly: the page gets `bit.ly/tb-<address>`, and Bitly's random link when that is taken too.
