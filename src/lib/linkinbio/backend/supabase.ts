@@ -133,12 +133,14 @@ export const supabaseBackend: LinkInBioBackend = {
     const supabase = await db();
     const base = import.meta.env.VITE_SUPABASE_URL as string;
     const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+    const token = (await supabase.auth.getSession()).data.session?.access_token;
+    if (!token) throw new Error("Not signed in");
     const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "");
     const path = `${crypto.randomUUID()}.${ext}`;
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       xhr.open("POST", `${base}/storage/v1/object/${IMAGE_BUCKET}/${path}`);
-      xhr.setRequestHeader("Authorization", `Bearer ${key}`);
+      xhr.setRequestHeader("Authorization", `Bearer ${token}`);
       xhr.setRequestHeader("apikey", key);
       xhr.setRequestHeader("Content-Type", file.type);
       xhr.setRequestHeader("x-upsert", "false");

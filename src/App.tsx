@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Editor from "./pages/Editor";
+import { AuthGate } from "./components/editor/AuthGate";
 import NotFound from "./pages/NotFound";
 import PublicPage from "./pages/PublicPage";
 import DataDeletion from "./pages/DataDeletion";
@@ -19,8 +20,8 @@ const App = () => (
       <Sonner />
       <BrowserRouter basename={APP_BASE}>
         <Routes>
-          <Route path="/" element={<Editor />} />
-          <Route path="/edit/:address" element={<Editor />} />
+          <Route path="/" element={<AuthGate><Editor /></AuthGate>} />
+          <Route path="/edit/:address" element={<AuthGate><Editor /></AuthGate>} />
           <Route path="/data-deletion" element={<DataDeletion />} />
           <Route path="/public/data-deletion" element={<DataDeletion />} />
           <Route path="/instagram-callback" element={<InstagramCallback />} />
